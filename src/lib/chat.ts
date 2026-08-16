@@ -1,6 +1,10 @@
 import { db } from "@/lib/firebase-admin";
 import { getUsersByIds } from "@/lib/users";
 
+export const REACTION_EMOJI = ["👍", "👎", "❤️", "😂", "😮"] as const;
+
+export type ReactionSummary = { emoji: string; count: number; mine: boolean };
+
 export type ChatMessageDTO = {
   id: string;
   content: string | null;
@@ -13,6 +17,7 @@ export type ChatMessageDTO = {
     totalVotes: number;
     myVoteOptionId: string | null;
   } | null;
+  reactions: ReactionSummary[];
 };
 
 export type MessagePreviewDTO = {
@@ -60,6 +65,8 @@ export async function getChatMessages(eventId: string, currentUserId: string): P
       | { question: string; options: { id: string; label: string }[]; votes: Record<string, string> }
       | undefined;
 
+    const reactions = data.reactions as Record<string, Record<string, true>> | undefined;
+
     return {
       id: d.id,
       content: data.content ?? null,
@@ -78,6 +85,14 @@ export async function getChatMessages(eventId: string, currentUserId: string): P
             myVoteOptionId: poll.votes?.[currentUserId] ?? null,
           }
         : null,
+      reactions: REACTION_EMOJI.map((emoji) => {
+        const voters = reactions?.[emoji] ?? {};
+        return {
+          emoji,
+          count: Object.keys(voters).length,
+          mine: !!voters[currentUserId],
+        };
+      }),
     };
   });
 }

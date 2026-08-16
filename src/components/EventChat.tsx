@@ -3,8 +3,34 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, BarChart3, X, Plus } from "lucide-react";
-import { sendChatMessage, createPoll, votePoll } from "@/app/actions";
+import { sendChatMessage, createPoll, votePoll, toggleReaction } from "@/app/actions";
 import type { ChatMessageDTO } from "@/lib/chat";
+
+function ReactionBar({
+  reactions,
+  onToggle,
+}: {
+  reactions: ChatMessageDTO["reactions"];
+  onToggle: (emoji: string) => void;
+}) {
+  return (
+    <div className="flex gap-1 mt-1 flex-wrap">
+      {reactions.map((r) => (
+        <button
+          key={r.emoji}
+          type="button"
+          onClick={() => onToggle(r.emoji)}
+          className={`text-xs rounded-full border-2 px-1.5 py-0.5 flex items-center gap-1 cursor-pointer ${
+            r.mine ? "border-primary bg-accent-soft" : "border-border text-muted hover:border-foreground"
+          }`}
+        >
+          <span>{r.emoji}</span>
+          {r.count > 0 && <span>{r.count}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function formatTime(iso: string) {
   return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(iso));
@@ -152,9 +178,27 @@ export function EventChat({
     await votePoll(eventId, pollId, optionId);
   }
 
+  async function handleToggleReaction(messageId: string, emoji: string) {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? {
+              ...m,
+              reactions: m.reactions.map((r) =>
+                r.emoji === emoji
+                  ? { ...r, mine: !r.mine, count: r.mine ? r.count - 1 : r.count + 1 }
+                  : r,
+              ),
+            }
+          : m,
+      ),
+    );
+    await toggleReaction(eventId, messageId, emoji);
+  }
+
   return (
-    <div className="bg-surface border-2 border-foreground rounded-lg shadow-[3px_3px_0_0_var(--foreground)] flex flex-col">
-      <div ref={scrollRef} className="flex flex-col gap-3 p-4 max-h-96 overflow-y-auto">
+    <div className="flex-1 flex flex-col min-h-0">
+      <div ref={scrollRef} className="flex-1 flex flex-col gap-3 p-4 overflow-y-auto">
         {messages.length === 0 && (
           <p className="text-sm text-muted text-center py-6">
             No messages yet. Say hi to the group.
@@ -178,12 +222,13 @@ export function EventChat({
                   {m.content}
                 </div>
               )}
+              <ReactionBar reactions={m.reactions} onToggle={(emoji) => handleToggleReaction(m.id, emoji)} />
             </div>
           );
         })}
       </div>
 
-      <div className="border-t-2 border-foreground p-3">
+      <div className="border-t-2 border-foreground p-3 shrink-0">
         <AnimatePresence>
           {showPollForm && (
             <motion.form

@@ -281,7 +281,8 @@ export async function sendChatMessage(eventId: string, content: string) {
     createdAt: FieldValue.serverTimestamp(),
   });
 
-  revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/chats/${eventId}`);
+  revalidatePath("/chats");
 }
 
 export async function createPoll(eventId: string, question: string, options: string[]) {
@@ -309,7 +310,8 @@ export async function createPoll(eventId: string, question: string, options: str
     },
   });
 
-  revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/chats/${eventId}`);
+  revalidatePath("/chats");
 }
 
 export async function votePoll(eventId: string, pollId: string, optionId: string) {
@@ -327,7 +329,27 @@ export async function votePoll(eventId: string, pollId: string, optionId: string
 
   await messageRef.update({ [`poll.votes.${user.id}`]: optionId });
 
-  revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/chats/${eventId}`);
+}
+
+export async function toggleReaction(eventId: string, messageId: string, emoji: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const allowed = await isEventAttendee(eventId, user.id);
+  if (!allowed) throw new Error("Only attendees can react");
+
+  const messageRef = db.doc(`events/${eventId}/messages/${messageId}`);
+  const snap = await messageRef.get();
+  if (!snap.exists) throw new Error("Message not found");
+
+  const alreadyReacted = !!snap.data()?.reactions?.[emoji]?.[user.id];
+
+  await messageRef.update({
+    [`reactions.${emoji}.${user.id}`]: alreadyReacted ? FieldValue.delete() : true,
+  });
+
+  revalidatePath(`/chats/${eventId}`);
 }
 
 export async function deleteAccount() {

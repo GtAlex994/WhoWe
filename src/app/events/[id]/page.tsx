@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 import { getEvent, getEventAttendees, getEventRatings, getAttendeeStatus } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users";
 import { getCurrentUser } from "@/lib/session";
@@ -12,8 +13,6 @@ import { Button } from "@/components/Button";
 import { StarRating } from "@/components/StarRating";
 import { EventRatingForm } from "@/components/EventRatingForm";
 import { distanceKm, formatDistance } from "@/lib/geo";
-import { getChatMessages } from "@/lib/chat";
-import { EventChat } from "@/components/EventChat";
 
 function formatWhen(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -67,7 +66,6 @@ export default async function EventDetailPage({
       : null;
 
   const canChat = currentUser != null && (isAttending || isCreator);
-  const initialMessages = canChat ? await getChatMessages(event.id, currentUser!.id) : [];
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
@@ -129,10 +127,12 @@ export default async function EventDetailPage({
 
         {canChat && (
           <FadeIn delay={0.16}>
-            <h2 className="text-sm font-medium mb-3 uppercase tracking-wide text-muted">
-              Discussion
-            </h2>
-            <EventChat eventId={event.id} currentUserId={currentUser!.id} initialMessages={initialMessages} />
+            <Link href={`/chats/${event.id}`}>
+              <Button variant="secondary" className="w-full sm:w-auto">
+                <MessageCircle size={16} />
+                Join the event chat
+              </Button>
+            </Link>
           </FadeIn>
         )}
 

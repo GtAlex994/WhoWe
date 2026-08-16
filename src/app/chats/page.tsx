@@ -43,7 +43,7 @@ export default async function ChatsPage() {
           {rows.map(({ event, preview }) => (
             <StaggerItem key={event.id}>
               <Link
-                href={`/events/${event.id}`}
+                href={`/chats/${event.id}`}
                 className="block bg-surface border-2 border-foreground rounded-lg px-4 py-3 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[4px_4px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex items-center justify-between gap-3">
