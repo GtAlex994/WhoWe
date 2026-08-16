@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // All Firestore access goes through firebase-admin on the server, which
+    // bypasses these rules. Deny all direct client access as defense in depth.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

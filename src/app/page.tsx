@@ -1,69 +1,171 @@
-import Image from "next/image";
+import Link from "next/link";
+import { listUpcomingEvents } from "@/lib/events";
+import { getUsersByIds } from "@/lib/users";
+import { CATEGORIES } from "@/lib/categories";
+import { FadeIn } from "@/components/FadeIn";
+import { StaggerList, StaggerItem } from "@/components/StaggerList";
+import { Button } from "@/components/Button";
+import { CategoryTag } from "@/components/CategoryTag";
+import { Squiggle } from "@/components/Squiggle";
+import { StarRating } from "@/components/StarRating";
+import { getHostRatings } from "@/lib/ratings";
+import { getCurrentUser } from "@/lib/session";
+import { distanceKm, formatDistance } from "@/lib/geo";
 
-export default function Home() {
+function formatWhen(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; category?: string; near?: string }>;
+}) {
+  const { q, category, near } = await searchParams;
+  const currentUser = await getCurrentUser();
+
+  const events = await listUpcomingEvents({ category, q });
+
+  const [hostRatings, creators] = await Promise.all([
+    getHostRatings(events.map((e) => e.creatorId)),
+    getUsersByIds(events.map((e) => e.creatorId)),
+  ]);
+
+  const hasUserLocation =
+    currentUser?.locationLat != null && currentUser?.locationLng != null;
+
+  const eventsWithDistance = events.map((event) => ({
+    event,
+    distance:
+      hasUserLocation && event.latitude != null && event.longitude != null
+        ? distanceKm(
+            { lat: currentUser!.locationLat!, lng: currentUser!.locationLng! },
+            { lat: event.latitude, lng: event.longitude },
+          )
+        : null,
+  }));
+
+  const sortNear = near === "1";
+  if (sortNear) {
+    eventsWithDistance.sort((a, b) => {
+      if (a.distance == null) return 1;
+      if (b.distance == null) return -1;
+      return a.distance - b.distance;
+    });
+  }
+
+  const otherParams = new URLSearchParams();
+  if (q) otherParams.set("q", q);
+  if (category) otherParams.set("category", category);
+  const nearParams = new URLSearchParams(otherParams);
+  nearParams.set("near", "1");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-8">
+      <FadeIn>
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight inline-block relative">
+          Upcoming events
+          <Squiggle className="absolute -bottom-2 left-0 w-40 h-3" />
+        </h1>
+        <p className="text-muted mt-4 text-lg max-w-xl">
+          Small, casual plans — see what&apos;s happening nearby and join in.
+        </p>
+      </FadeIn>
+
+      <FadeIn delay={0.08} className="flex flex-col gap-3">
+        <form className="flex flex-col sm:flex-row gap-3" action="/">
+          <input
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="Search events, e.g. &quot;dinner&quot; or &quot;movie&quot;"
+            className="flex-1 border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+          />
+          <select
+            name="category"
+            defaultValue={category ?? ""}
+            className="border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <option value="">All categories</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <Button type="submit" variant="secondary">
+            Search
+          </Button>
+        </form>
+
+        {hasUserLocation && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted">Sort:</span>
+            <Link
+              href={`/?${otherParams.toString()}`}
+              className={!sortNear ? "text-foreground font-medium" : "text-muted hover:text-foreground"}
+            >
+              Soonest
+            </Link>
+            <span className="text-border">·</span>
+            <Link
+              href={`/?${nearParams.toString()}`}
+              className={sortNear ? "text-foreground font-medium" : "text-muted hover:text-foreground"}
+            >
+              Nearest
+            </Link>
+          </div>
+        )}
+      </FadeIn>
+
+      {eventsWithDistance.length === 0 ? (
+        <FadeIn delay={0.16} className="py-16 text-center text-muted">
+          No events match yet.{" "}
+          <Link href="/events/new" className="text-primary hover:underline">
+            Start one
+          </Link>
+          .
+        </FadeIn>
+      ) : (
+        <StaggerList className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {eventsWithDistance.map(({ event, distance }) => (
+            <StaggerItem key={event.id}>
+              <Link
+                href={`/events/${event.id}`}
+                className="h-full flex flex-col bg-surface border-2 border-foreground rounded-lg px-5 py-4 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[5px_5px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="font-display text-lg font-semibold leading-snug">{event.title}</div>
+                </div>
+                <div className="text-sm text-muted mt-1.5">
+                  {formatWhen(event.startsAt)} · {event.location}
+                </div>
+                {distance != null && (
+                  <div className="text-xs text-accent mt-1 font-medium">{formatDistance(distance)}</div>
+                )}
+                <div className="mt-auto pt-4 flex items-center justify-between gap-2">
+                  <CategoryTag category={event.category} />
+                  <span className="text-xs text-muted shrink-0">
+                    {event.attendeeCount} {event.attendeeCount === 1 ? "going" : "going"}
+                  </span>
+                </div>
+                <div className="text-xs text-muted mt-1 flex items-center gap-2">
+                  <span>Hosted by {creators[event.creatorId]?.name ?? "someone"}</span>
+                  {hostRatings[event.creatorId] && (
+                    <StarRating avg={hostRatings[event.creatorId].avg} count={hostRatings[event.creatorId].count} hideCount />
+                  )}
+                </div>
+              </Link>
+            </StaggerItem>
+          ))}
+        </StaggerList>
+      )}
     </div>
   );
 }
