@@ -85,7 +85,7 @@ export function EventChat({
         const data = await res.json();
         setMessages(data.messages);
       } catch {
-        // Silently skip a missed refresh — next interval will retry.
+        // Silently skip a missed refresh, next interval will retry.
       }
     }, 2500);
     return () => clearInterval(interval);
@@ -157,7 +157,7 @@ export function EventChat({
       <div ref={scrollRef} className="flex flex-col gap-3 p-4 max-h-96 overflow-y-auto">
         {messages.length === 0 && (
           <p className="text-sm text-muted text-center py-6">
-            No messages yet — say hi to the group.
+            No messages yet. Say hi to the group.
           </p>
         )}
         {messages.map((m) => {

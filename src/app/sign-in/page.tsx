@@ -25,7 +25,7 @@ export default function SignInPage() {
       window.localStorage.setItem("emailForSignIn", email);
       setSent(true);
     } catch {
-      setError("Couldn't send that link — check the email address and try again.");
+      setError("Couldn't send that link. Check the email address and try again.");
     } finally {
       setSending(false);
     }
@@ -44,7 +44,7 @@ export default function SignInPage() {
           <span className="text-primary">we</span>.
         </p>
         <p className="text-background/60 mt-8 max-w-sm">
-          Small, real-world plans with people who share your interests —
+          Small, real-world plans with people who share your interests,
           organized by whoever shows up first.
         </p>
         <Squiggle className="w-40 h-4 mt-8" color="var(--primary)" />
@@ -63,7 +63,7 @@ export default function SignInPage() {
           <>
             <FadeIn>
               <h1 className="text-3xl font-semibold tracking-tight">Welcome to WhoWe</h1>
-              <p className="text-muted mt-1.5">No passwords — we&apos;ll email you a link to sign in.</p>
+              <p className="text-muted mt-1.5">No passwords. We&apos;ll email you a link to sign in.</p>
             </FadeIn>
 
             <FadeIn delay={0.08}>

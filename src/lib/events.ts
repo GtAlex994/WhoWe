@@ -303,7 +303,7 @@ async function inviteReplacementIfNeeded(eventRef: FirebaseFirestore.DocumentRef
     });
   } catch {
     // Lost a race to another concurrent decline/leave picking the same
-    // candidate — harmless, the event may just stay one slot short.
+    // candidate. Harmless, the event may just stay one slot short.
   }
 }
 
@@ -316,7 +316,7 @@ export async function joinEvent(eventId: string, userId: string) {
     if (!eventSnap.exists) throw new Error("Event not found");
 
     const attendeeSnap = await tx.get(attendeeRef);
-    if (attendeeSnap.exists) return; // already joined — idempotent no-op
+    if (attendeeSnap.exists) return; // already joined, idempotent no-op
 
     const event = eventSnap.data()!;
     tx.set(attendeeRef, {
@@ -411,7 +411,7 @@ export async function rateEvent(
     const hostSnap = await tx.get(hostRef);
     const host = hostSnap.data() ?? {};
 
-    // all reads done — safe to write now
+    // all reads done, safe to write now
     const newRatingSum = (event.ratingSum ?? 0) - (prevScore ?? 0) + score;
     const newRatingCount = (event.ratingCount ?? 0) + (prevScore === null ? 1 : 0);
 

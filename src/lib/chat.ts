@@ -15,6 +15,31 @@ export type ChatMessageDTO = {
   } | null;
 };
 
+export type MessagePreviewDTO = {
+  content: string | null;
+  senderName: string;
+  createdAt: Date;
+  isPoll: boolean;
+};
+
+export async function getLastMessagePreview(eventId: string): Promise<MessagePreviewDTO | null> {
+  const snap = await db
+    .collection(`events/${eventId}/messages`)
+    .orderBy("createdAt", "desc")
+    .limit(1)
+    .get();
+
+  if (snap.empty) return null;
+
+  const data = snap.docs[0].data();
+  return {
+    content: data.content ?? null,
+    senderName: data.senderName,
+    createdAt: data.createdAt.toDate(),
+    isPoll: !!data.poll,
+  };
+}
+
 export async function isEventAttendee(eventId: string, userId: string) {
   const snap = await db.doc(`events/${eventId}/attendees/${userId}`).get();
   return snap.exists && snap.data()?.status === "joined";

@@ -35,7 +35,7 @@ async function fetchRandomBatch(pivot: number, size: number): Promise<Candidate[
  * favoring ones near (eventLat, eventLng) when they have a location set.
  * Firestore has no native random-order query, so this samples via a random
  * pivot on a `randomKey` field every user doc carries, then ranks that
- * random sample by distance — random pool, location-aware pick within it.
+ * random sample by distance: a random pool, location-aware pick within it.
  */
 export async function pickWildCandidates(
   eventLat: number,

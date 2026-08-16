@@ -87,7 +87,7 @@ export function LocationInput({ defaultValue = "" }: { defaultValue?: string }) 
             setOpen(false);
           }
         }}
-        placeholder="Start typing an address — restaurant, cafe, park…"
+        placeholder="Start typing an address: restaurant, cafe, park…"
         className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
       />
       {loading && (

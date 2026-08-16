@@ -61,7 +61,7 @@ export async function skipOnboarding() {
         });
         created = true;
       } catch {
-        // username collision — try another candidate
+        // username collision, try another candidate
       }
     }
     if (!created) throw new Error("Could not generate a username, please try again");
@@ -336,7 +336,7 @@ export async function deleteAccount() {
 
   const uid = user.id;
 
-  // 1. Events this user created — recursiveDelete wipes their attendees/ratings/messages too.
+  // 1. Events this user created. recursiveDelete wipes their attendees/ratings/messages too.
   const ownedEvents = await db.collection("events").where("creatorId", "==", uid).get();
   for (const eventDoc of ownedEvents.docs) {
     await db.recursiveDelete(eventDoc.ref);

@@ -9,7 +9,7 @@ import { Squiggle } from "@/components/Squiggle";
 const PRINCIPLES = [
   {
     title: "Always meet in public places",
-    body: "Every event on WhoWe should be held somewhere public and populated — a restaurant, cafe, park, or venue. Never a private home on a first meetup.",
+    body: "Every event on WhoWe should be held somewhere public and populated: a restaurant, cafe, park, or venue. Never a private home on a first meetup.",
   },
   {
     title: "Trust your instincts",
@@ -21,7 +21,7 @@ const PRINCIPLES = [
   },
   {
     title: "Reliability over reviews",
-    body: "Instead of open-ended public reviews of people — which can be misused to harass — we're building a simple reliability signal based on whether people show up to what they join.",
+    body: "Instead of open-ended public reviews of people, which can be misused to harass, we're building a simple reliability signal based on whether people show up to what they join.",
   },
 ];
 
@@ -37,7 +37,7 @@ export default async function OnboardingSafetyPage() {
           <Squiggle className="absolute -bottom-2 left-0 w-40 h-3" />
         </h1>
         <p className="text-muted mt-4 text-lg">
-          Meeting new people is the whole point — here&apos;s how we try to make that
+          Meeting new people is the whole point. Here&apos;s how we try to make that
           feel safe.
         </p>
       </FadeIn>

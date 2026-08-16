@@ -4,7 +4,7 @@ import { FadeIn } from "@/components/FadeIn";
 import { CreateEventForm } from "@/components/CreateEventForm";
 
 const TIPS = [
-  "Pick a place that's genuinely public — a business with staff and other customers around, not a private residence.",
+  "Pick a place that's genuinely public: a business with staff and other customers around, not a private residence.",
   "Say what to expect. A clear description helps the right people find and join.",
   "Small is good. A dinner for 4 or a hike for 6 is easier to actually pull off than a huge open invite.",
 ];
@@ -19,7 +19,7 @@ export default async function NewEventPage() {
         <FadeIn>
           <h1 className="text-4xl font-semibold tracking-tight">Create an event</h1>
           <p className="text-muted mt-1.5">
-            Keep it simple — what, where, when. For everyone&apos;s safety, use a
+            Keep it simple: what, where, when. For everyone&apos;s safety, use a
             public place.
           </p>
         </FadeIn>
@@ -35,7 +35,7 @@ export default async function NewEventPage() {
           <ul className="mt-4 flex flex-col gap-4">
             {TIPS.map((tip) => (
               <li key={tip} className="text-sm text-foreground/70 flex gap-2">
-                <span className="text-accent">—</span>
+                <span className="text-accent">•</span>
                 {tip}
               </li>
             ))}

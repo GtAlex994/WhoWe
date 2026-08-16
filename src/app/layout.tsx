@@ -26,7 +26,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "WhoWe — meet up, together",
+  title: "WhoWe: meet up, together",
   description: "Organize small local events and meet people who want to join in.",
 };
 
@@ -46,7 +46,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
             <nav className="hidden lg:flex items-center gap-5">
               <NavLink href="/">Events</NavLink>
-              {user && <NavLink href="/profile">Profile</NavLink>}
+              {user && <NavLink href="/my-events">My events</NavLink>}
+              {user && <NavLink href="/chats">Chats</NavLink>}
               <Link href="/events/new">
                 <Button variant="primary" className="px-4 py-2 text-sm">
                   Create event
@@ -55,7 +56,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               {user ? (
                 <div className="flex items-center gap-2">
                   <Link
-                    href="/settings"
+                    href="/profile"
                     className="text-sm text-muted hover:text-foreground"
                   >
                     {user.name}
@@ -73,7 +74,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
             <div className="flex lg:hidden items-center gap-3 text-sm">
               {user ? (
-                <Link href="/settings" className="text-muted hover:text-foreground">
+                <Link href="/profile" className="text-muted hover:text-foreground">
                   {user.name}
                 </Link>
               ) : (
@@ -87,7 +88,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <main className="flex-1 relative w-full pb-20 lg:pb-0">{children}</main>
         <footer className="hidden lg:block border-t-2 border-foreground mt-16">
           <div className="w-full px-4 sm:px-6 lg:px-10 py-6 text-sm text-muted flex items-center justify-between">
-            <span>WhoWe — it starts with who, it becomes we.</span>
+            <span>WhoWe: it starts with who, it becomes we.</span>
           </div>
         </footer>
         <MobileDock signedIn={!!user} />

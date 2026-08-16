@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     sessionCookie = await auth.createSessionCookie(idToken, { expiresIn: SESSION_MAX_AGE_MS });
   } catch {
-    return NextResponse.json({ error: "Could not start a session — try signing in again" }, { status: 401 });
+    return NextResponse.json({ error: "Could not start a session. Try signing in again" }, { status: 401 });
   }
 
   await setSessionCookie(sessionCookie, SESSION_MAX_AGE_MS);

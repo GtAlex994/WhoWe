@@ -86,7 +86,7 @@ export default async function HomePage({
           <Squiggle className="absolute -bottom-2 left-0 w-40 h-3" />
         </h1>
         <p className="text-muted mt-4 text-lg max-w-xl">
-          Small, casual plans — see what&apos;s happening nearby and join in.
+          Small, casual plans. See what&apos;s happening nearby and join in.
         </p>
       </FadeIn>
 

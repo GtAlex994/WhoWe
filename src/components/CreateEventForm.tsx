@@ -42,7 +42,7 @@ export function CreateEventForm() {
 
       {mode === "wild" && (
         <p className="text-sm text-muted -mt-1">
-          Skip the details — say where and when, and we&apos;ll randomly invite people
+          Skip the details, say where and when, and we&apos;ll randomly invite people
           nearby until your spot count is filled. A good way to meet people outside your
           usual circle.
         </p>
@@ -66,7 +66,7 @@ export function CreateEventForm() {
               name="description"
               required
               rows={3}
-              placeholder="A few details — what to expect, who it's for, anything to bring."
+              placeholder="A few details: what to expect, who it's for, anything to bring."
               className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none resize-none"
             />
           </div>

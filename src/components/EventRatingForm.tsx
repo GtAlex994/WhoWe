@@ -38,7 +38,7 @@ export function EventRatingForm({
         name="comment"
         rows={2}
         defaultValue={defaultComment}
-        placeholder="Optional — how did it go?"
+        placeholder="Optional: how did it go?"
         className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none resize-none"
       />
       <Button

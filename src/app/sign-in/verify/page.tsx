@@ -46,7 +46,7 @@ export default function VerifyPage() {
       router.push(needsOnboarding ? "/onboarding" : "/");
     } catch {
       setStatus("error");
-      setError("That link is invalid or has expired — request a new one.");
+      setError("That link is invalid or has expired. Request a new one.");
     }
   }
 

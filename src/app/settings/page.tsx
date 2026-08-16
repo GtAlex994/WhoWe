@@ -11,7 +11,7 @@ import { LocationPermission } from "@/components/LocationPermission";
 const PRINCIPLES = [
   {
     title: "Always meet in public places",
-    body: "Every event on WhoWe should be held somewhere public and populated — a restaurant, cafe, park, or venue. Never a private home on a first meetup.",
+    body: "Every event on WhoWe should be held somewhere public and populated: a restaurant, cafe, park, or venue. Never a private home on a first meetup.",
   },
   {
     title: "Trust your instincts",
@@ -23,7 +23,7 @@ const PRINCIPLES = [
   },
   {
     title: "Reliability over reviews",
-    body: "Instead of open-ended public reviews of people — which can be misused to harass — we're building a simple reliability signal based on whether people show up to what they join.",
+    body: "Instead of open-ended public reviews of people, which can be misused to harass, we're building a simple reliability signal based on whether people show up to what they join.",
   },
 ];
 
@@ -82,7 +82,7 @@ export default async function SettingsPage() {
               </span>
             </label>
             <p className="text-xs text-muted -mt-2">
-              We don&apos;t have email delivery connected yet — this just saves your preference
+              We don&apos;t have email delivery connected yet. This just saves your preference
               for when we do.
             </p>
             <Button type="submit" variant="secondary" className="text-sm">
@@ -99,7 +99,7 @@ export default async function SettingsPage() {
         <FadeIn delay={0.18}>
           <h2 className="text-sm font-medium mb-3 uppercase tracking-wide text-muted">Safety</h2>
           <p className="text-muted text-sm mb-4">
-            Meeting new people is the whole point — here&apos;s how we try to make that
+            Meeting new people is the whole point. Here&apos;s how we try to make that
             feel safe.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -114,7 +114,7 @@ export default async function SettingsPage() {
             ))}
           </div>
           <p className="text-xs text-muted mt-3">
-            WhoWe is an early prototype — in-app reporting, blocking, and identity
+            WhoWe is an early prototype. In-app reporting, blocking, and identity
             verification aren&apos;t live yet. Treat every meetup with the same caution
             you&apos;d use meeting anyone new online.
           </p>

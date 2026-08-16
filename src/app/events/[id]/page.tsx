@@ -111,7 +111,7 @@ export default async function EventDetailPage({
             </form>
           ) : isPendingInvite ? (
             <span className="inline-block text-sm text-muted">
-              You&apos;ve been invited to this Wild meetup — respond from the invite banner
+              You&apos;ve been invited to this Wild meetup. Respond from the invite banner
               on the <Link href="/" className="text-primary hover:underline">home page</Link>.
             </span>
           ) : event.isWild ? (

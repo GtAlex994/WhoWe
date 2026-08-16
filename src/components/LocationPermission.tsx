@@ -53,7 +53,7 @@ export function LocationPermission({
       <div className="flex items-center gap-2 text-sm">
         <span className="text-accent">📍</span>
         <span>
-          Location enabled{label ? ` — ${label}` : ""}
+          Location enabled{label ? ` near ${label}` : ""}
         </span>
       </div>
     );
