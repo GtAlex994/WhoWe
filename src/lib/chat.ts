@@ -1,9 +1,6 @@
 import { db } from "@/lib/firebase-admin";
 import { getUsersByIds } from "@/lib/users";
-
-export const REACTION_EMOJI = ["👍", "👎", "❤️", "😂", "😮"] as const;
-
-export type ReactionSummary = { emoji: string; count: number; mine: boolean };
+import { REACTION_EMOJI, type ReactionSummary } from "@/lib/reactions";
 
 export type ChatMessageDTO = {
   id: string;

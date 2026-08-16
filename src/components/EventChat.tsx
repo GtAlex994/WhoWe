@@ -5,27 +5,64 @@ import { motion, AnimatePresence } from "motion/react";
 import { Send, BarChart3, X, Plus } from "lucide-react";
 import { sendChatMessage, createPoll, votePoll, toggleReaction } from "@/app/actions";
 import type { ChatMessageDTO } from "@/lib/chat";
+import { REACTION_EMOJI } from "@/lib/reactions";
 
-function ReactionBar({
+function ReactionPicker({
+  align,
+  onPick,
+  onClose,
+}: {
+  align: "left" | "right";
+  onPick: (emoji: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* Full-screen backdrop to catch a tap-away and close the picker. */}
+      <div className="fixed inset-0 z-30" onClick={onClose} onTouchStart={onClose} />
+      <div
+        className={`absolute z-40 -top-12 ${align === "left" ? "left-0" : "right-0"} flex gap-1 bg-surface border-2 border-foreground rounded-full px-2 py-1.5 shadow-[3px_3px_0_0_var(--foreground)]`}
+      >
+        {REACTION_EMOJI.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => onPick(emoji)}
+            className="text-lg leading-none hover:scale-125 transition-transform cursor-pointer"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ReactionBadge({
   reactions,
+  align,
   onToggle,
 }: {
   reactions: ChatMessageDTO["reactions"];
+  align: "left" | "right";
   onToggle: (emoji: string) => void;
 }) {
+  const active = reactions.filter((r) => r.count > 0);
+  if (active.length === 0) return null;
+
   return (
-    <div className="flex gap-1 mt-1 flex-wrap">
-      {reactions.map((r) => (
+    <div className={`absolute -bottom-2.5 ${align === "left" ? "-left-1.5" : "-right-1.5"} flex gap-0.5 z-20`}>
+      {active.map((r) => (
         <button
           key={r.emoji}
           type="button"
           onClick={() => onToggle(r.emoji)}
-          className={`text-xs rounded-full border-2 px-1.5 py-0.5 flex items-center gap-1 cursor-pointer ${
-            r.mine ? "border-primary bg-accent-soft" : "border-border text-muted hover:border-foreground"
+          className={`flex items-center gap-0.5 text-[11px] rounded-full border-2 bg-background px-1.5 py-0.5 cursor-pointer ${
+            r.mine ? "border-primary" : "border-border"
           }`}
         >
           <span>{r.emoji}</span>
-          {r.count > 0 && <span>{r.count}</span>}
+          {r.count > 1 && <span className="text-muted">{r.count}</span>}
         </button>
       ))}
     </div>
@@ -97,6 +134,8 @@ export function EventChat({
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
+  const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPollForm, setShowPollForm] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
@@ -196,6 +235,14 @@ export function EventChat({
     await toggleReaction(eventId, messageId, emoji);
   }
 
+  function startPress(messageId: string) {
+    pressTimer.current = setTimeout(() => setPickerFor(messageId), 450);
+  }
+
+  function cancelPress() {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  }
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div ref={scrollRef} className="flex-1 flex flex-col gap-3 p-4 overflow-y-auto">
@@ -206,23 +253,49 @@ export function EventChat({
         )}
         {messages.map((m) => {
           const mine = m.sender.id === currentUserId;
+          const align = mine ? "left" : "right";
           return (
             <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
               <span className="text-xs text-muted mb-0.5">
                 {mine ? "You" : m.sender.name} · {formatTime(m.createdAt)}
               </span>
-              {m.poll ? (
-                <PollCard poll={m.poll} onVote={handleVote} />
-              ) : (
-                <div
-                  className={`max-w-xs sm:max-w-sm rounded-lg px-3 py-2 border-2 border-foreground text-sm ${
-                    mine ? "bg-primary text-primary-foreground" : "bg-surface"
-                  }`}
-                >
-                  {m.content}
-                </div>
-              )}
-              <ReactionBar reactions={m.reactions} onToggle={(emoji) => handleToggleReaction(m.id, emoji)} />
+              <div
+                className="relative select-none"
+                onTouchStart={() => startPress(m.id)}
+                onTouchEnd={cancelPress}
+                onTouchMove={cancelPress}
+                onMouseDown={() => startPress(m.id)}
+                onMouseUp={cancelPress}
+                onMouseLeave={cancelPress}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                {m.poll ? (
+                  <PollCard poll={m.poll} onVote={handleVote} />
+                ) : (
+                  <div
+                    className={`max-w-xs sm:max-w-sm rounded-lg px-3 py-2 border-2 border-foreground text-sm ${
+                      mine ? "bg-primary text-primary-foreground" : "bg-surface"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                )}
+                <ReactionBadge
+                  reactions={m.reactions}
+                  align={align}
+                  onToggle={(emoji) => handleToggleReaction(m.id, emoji)}
+                />
+                {pickerFor === m.id && (
+                  <ReactionPicker
+                    align={align}
+                    onPick={(emoji) => {
+                      handleToggleReaction(m.id, emoji);
+                      setPickerFor(null);
+                    }}
+                    onClose={() => setPickerFor(null)}
+                  />
+                )}
+              </div>
             </div>
           );
         })}
