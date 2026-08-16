@@ -12,7 +12,7 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
-export const CATEGORY_COLORS: Record<Category, string> = {
+export const CATEGORY_COLORS: Record<string, string> = {
   "Food & Drink": "#bc4b2c",
   "Movies & Shows": "#6b4c9a",
   Outdoors: "#2f5d50",
@@ -22,6 +22,7 @@ export const CATEGORY_COLORS: Record<Category, string> = {
   "Books & Learning": "#3e7c7b",
   "Arts & Culture": "#8e4585",
   Other: "#6b6459",
+  Wild: "#c22b6b",
 };
 
 export function categoryColor(category: string) {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listUpcomingEvents } from "@/lib/events";
+import { listUpcomingEvents, getUserAttendances, getEventsByIds, type EventDTO } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users";
 import { CATEGORIES } from "@/lib/categories";
 import { FadeIn } from "@/components/FadeIn";
@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { CategoryTag } from "@/components/CategoryTag";
 import { Squiggle } from "@/components/Squiggle";
 import { StarRating } from "@/components/StarRating";
+import { WildInviteBanner } from "@/components/WildInviteBanner";
 import { getHostRatings } from "@/lib/ratings";
 import { getCurrentUser } from "@/lib/session";
 import { distanceKm, formatDistance } from "@/lib/geo";
@@ -31,6 +32,17 @@ export default async function HomePage({
   const currentUser = await getCurrentUser();
 
   const events = await listUpcomingEvents({ category, q });
+
+  let pendingInvites: EventDTO[] = [];
+  if (currentUser) {
+    const invitedAttendances = (await getUserAttendances(currentUser.id)).filter(
+      (a) => a.status === "invited",
+    );
+    const inviteEvents = await getEventsByIds(invitedAttendances.map((a) => a.eventId));
+    pendingInvites = invitedAttendances
+      .map((a) => inviteEvents[a.eventId])
+      .filter((e): e is EventDTO => e != null);
+  }
 
   const [hostRatings, creators] = await Promise.all([
     getHostRatings(events.map((e) => e.creatorId)),
@@ -77,6 +89,12 @@ export default async function HomePage({
           Small, casual plans — see what&apos;s happening nearby and join in.
         </p>
       </FadeIn>
+
+      {pendingInvites.length > 0 && (
+        <FadeIn delay={0.04}>
+          <WildInviteBanner invites={pendingInvites} />
+        </FadeIn>
+      )}
 
       <FadeIn delay={0.08} className="flex flex-col gap-3">
         <form className="flex flex-col sm:flex-row gap-3" action="/">

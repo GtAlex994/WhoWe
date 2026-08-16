@@ -46,7 +46,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
             <nav className="hidden lg:flex items-center gap-5">
               <NavLink href="/">Events</NavLink>
-              <NavLink href="/safety">Safety</NavLink>
               {user && <NavLink href="/profile">Profile</NavLink>}
               <Link href="/events/new">
                 <Button variant="primary" className="px-4 py-2 text-sm">
@@ -89,9 +88,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="hidden lg:block border-t-2 border-foreground mt-16">
           <div className="w-full px-4 sm:px-6 lg:px-10 py-6 text-sm text-muted flex items-center justify-between">
             <span>WhoWe — it starts with who, it becomes we.</span>
-            <Link href="/safety" className="hover:text-foreground">
-              Safety
-            </Link>
           </div>
         </footer>
         <MobileDock signedIn={!!user} />

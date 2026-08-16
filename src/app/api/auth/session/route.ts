@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       createdAt: FieldValue.serverTimestamp(),
       hostRatingSum: 0,
       hostRatingCount: 0,
+      randomKey: Math.random(),
     });
     userSnap = await userRef.get();
   }

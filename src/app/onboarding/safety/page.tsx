@@ -1,5 +1,9 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
 import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
+import { Button } from "@/components/Button";
 import { Squiggle } from "@/components/Squiggle";
 
 const PRINCIPLES = [
@@ -21,25 +25,28 @@ const PRINCIPLES = [
   },
 ];
 
-export default function SafetyPage() {
+export default async function OnboardingSafetyPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-10">
+    <div className="mx-auto max-w-2xl px-4 py-12 flex flex-col gap-8">
       <FadeIn>
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight inline-block relative">
-          Safety at WhoWe
-          <Squiggle className="absolute -bottom-2 left-0 w-48 h-3" />
+        <h1 className="text-4xl font-semibold tracking-tight inline-block relative">
+          One more thing
+          <Squiggle className="absolute -bottom-2 left-0 w-40 h-3" />
         </h1>
-        <p className="text-muted mt-4 text-lg max-w-2xl">
+        <p className="text-muted mt-4 text-lg">
           Meeting new people is the whole point — here&apos;s how we try to make that
           feel safe.
         </p>
       </FadeIn>
 
-      <StaggerList className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <StaggerList className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {PRINCIPLES.map((p) => (
           <StaggerItem
             key={p.title}
-            className="bg-surface border-2 border-foreground rounded-lg px-6 py-5 shadow-[3px_3px_0_0_var(--foreground)]"
+            className="bg-surface border-2 border-foreground rounded-lg px-5 py-4 shadow-[3px_3px_0_0_var(--foreground)]"
           >
             <div className="font-display text-lg font-semibold">{p.title}</div>
             <p className="text-sm text-muted mt-2 leading-relaxed">{p.body}</p>
@@ -47,16 +54,10 @@ export default function SafetyPage() {
         ))}
       </StaggerList>
 
-      <FadeIn delay={0.2} className="bg-accent-soft border-2 border-accent rounded-lg px-6 py-5 max-w-3xl">
-        <div className="font-display text-lg font-semibold text-accent">
-          Reporting &amp; verification — coming soon
-        </div>
-        <p className="text-sm text-foreground/70 mt-2 leading-relaxed">
-          WhoWe is an early prototype. In-app reporting, blocking, and identity
-          verification aren&apos;t live yet — treat every meetup with the same
-          caution you&apos;d use meeting anyone new online, and use the tips above
-          in the meantime.
-        </p>
+      <FadeIn delay={0.2}>
+        <Link href="/">
+          <Button variant="primary">Got it, continue</Button>
+        </Link>
       </FadeIn>
     </div>
   );

@@ -17,7 +17,7 @@ export type ChatMessageDTO = {
 
 export async function isEventAttendee(eventId: string, userId: string) {
   const snap = await db.doc(`events/${eventId}/attendees/${userId}`).get();
-  return snap.exists;
+  return snap.exists && snap.data()?.status === "joined";
 }
 
 export async function getChatMessages(eventId: string, currentUserId: string): Promise<ChatMessageDTO[]> {

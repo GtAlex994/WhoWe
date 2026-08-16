@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEvent, getEventAttendees, getEventRatings } from "@/lib/events";
+import { getEvent, getEventAttendees, getEventRatings, getAttendeeStatus } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users";
 import { getCurrentUser } from "@/lib/session";
 import { joinEvent, leaveEvent, rateEvent } from "@/app/actions";
@@ -42,6 +43,12 @@ export default async function EventDetailPage({
   const isAttending = currentUser ? attendees.some((a) => a.userId === currentUser.id) : false;
   const isCreator = currentUser?.id === event.creatorId;
   const hasHappened = event.startsAt <= new Date();
+
+  const myInviteStatus =
+    event.isWild && currentUser && !isCreator && !isAttending
+      ? await getAttendeeStatus(event.id, currentUser.id)
+      : null;
+  const isPendingInvite = myInviteStatus === "invited";
 
   const eventRatingSummary = event.ratingCount > 0 ? { avg: event.ratingAvg!, count: event.ratingCount } : null;
   const hostRatings = await getHostRatings([event.creatorId]);
@@ -102,6 +109,15 @@ export default async function EventDetailPage({
                 Leave event
               </Button>
             </form>
+          ) : isPendingInvite ? (
+            <span className="inline-block text-sm text-muted">
+              You&apos;ve been invited to this Wild meetup — respond from the invite banner
+              on the <Link href="/" className="text-primary hover:underline">home page</Link>.
+            </span>
+          ) : event.isWild ? (
+            <span className="inline-block text-sm text-muted">
+              Spots on Wild meetups are filled by invite only.
+            </span>
           ) : (
             <form action={joinEvent.bind(null, event.id)}>
               <Button type="submit" variant="primary">
@@ -156,7 +172,9 @@ export default async function EventDetailPage({
       <FadeIn delay={0.1}>
         <div className="bg-surface border-2 border-foreground rounded-lg p-5 shadow-[3px_3px_0_0_var(--foreground)] lg:sticky lg:top-24">
           <h2 className="text-sm font-medium mb-3 text-muted uppercase tracking-wide">
-            {event.attendeeCount} {event.attendeeCount === 1 ? "person" : "people"} going
+            {event.isWild
+              ? `${event.attendeeCount} of ${event.targetHeadcount} going`
+              : `${event.attendeeCount} ${event.attendeeCount === 1 ? "person" : "people"} going`}
           </h2>
           <StaggerList className="flex flex-col gap-2">
             {attendees.map((a) => (

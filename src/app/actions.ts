@@ -9,9 +9,12 @@ import { getCurrentUser, clearCurrentUser } from "@/lib/session";
 import { sanitizeUsername, reserveUsername } from "@/lib/users";
 import {
   createEvent as createEventDoc,
+  createWildEventDoc,
   joinEvent as joinEventDb,
   leaveEvent as leaveEventDb,
   rateEvent as rateEventDb,
+  acceptWildInvite as acceptWildInviteDb,
+  declineWildInvite as declineWildInviteDb,
 } from "@/lib/events";
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
@@ -38,7 +41,7 @@ export async function completeOnboarding(formData: FormData) {
   });
 
   revalidatePath("/profile");
-  redirect("/");
+  redirect("/onboarding/safety");
 }
 
 export async function skipOnboarding() {
@@ -66,7 +69,7 @@ export async function skipOnboarding() {
     await userRef.update({ onboardingCompletedAt: FieldValue.serverTimestamp() });
   }
 
-  redirect("/");
+  redirect("/onboarding/safety");
 }
 
 export async function setUserLocation(lat: number, lng: number, label: string | null) {
@@ -98,18 +101,10 @@ export async function createEvent(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const title = String(formData.get("title") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
+  const mode = String(formData.get("mode") ?? "standard");
   const location = String(formData.get("location") ?? "").trim();
   const startsAtRaw = String(formData.get("startsAt") ?? "");
-  const category = String(formData.get("category") ?? "");
-
-  if (!title || !description || !location || !startsAtRaw) {
-    throw new Error("All fields are required");
-  }
-  if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
-    throw new Error("Invalid category");
-  }
+  if (!location || !startsAtRaw) throw new Error("All fields are required");
 
   const startsAt = new Date(startsAtRaw);
   if (Number.isNaN(startsAt.getTime())) throw new Error("Invalid date");
@@ -118,6 +113,38 @@ export async function createEvent(formData: FormData) {
   const lngRaw = formData.get("longitude");
   const latitude = latRaw ? Number(latRaw) : null;
   const longitude = lngRaw ? Number(lngRaw) : null;
+
+  if (mode === "wild") {
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw new Error("Pick a location from the suggestions so we know where to invite people to");
+    }
+
+    const targetHeadcount = Number(formData.get("targetHeadcount"));
+    if (!Number.isInteger(targetHeadcount) || targetHeadcount < 2 || targetHeadcount > 12) {
+      throw new Error("Number of people must be between 2 and 12");
+    }
+
+    const eventId = await createWildEventDoc({
+      location,
+      latitude: latitude as number,
+      longitude: longitude as number,
+      startsAt,
+      targetHeadcount,
+      creatorId: user.id,
+    });
+
+    revalidatePath("/");
+    redirect(`/events/${eventId}`);
+  }
+
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const category = String(formData.get("category") ?? "");
+
+  if (!title || !description) throw new Error("All fields are required");
+  if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
+    throw new Error("Invalid category");
+  }
 
   const eventId = await createEventDoc({
     title,
@@ -149,6 +176,26 @@ export async function leaveEvent(eventId: string) {
 
   await leaveEventDb(eventId, user.id);
 
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function acceptWildInvite(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await acceptWildInviteDb(eventId, user.id);
+
+  revalidatePath("/");
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function declineWildInvite(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await declineWildInviteDb(eventId, user.id);
+
+  revalidatePath("/");
   revalidatePath(`/events/${eventId}`);
 }
 

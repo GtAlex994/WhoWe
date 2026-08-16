@@ -19,6 +19,7 @@ export type UserDTO = {
   hostRatingSum: number;
   hostRatingCount: number;
   hostRatingAvg: number | null;
+  randomKey: number;
 };
 
 export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): UserDTO {
@@ -40,6 +41,7 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
     hostRatingSum: data.hostRatingSum ?? 0,
     hostRatingCount: data.hostRatingCount ?? 0,
     hostRatingAvg: data.hostRatingCount ? data.hostRatingSum / data.hostRatingCount : null,
+    randomKey: data.randomKey ?? 0,
   };
 }
 

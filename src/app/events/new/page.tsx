@@ -1,16 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { createEvent } from "@/app/actions";
-import { CATEGORIES } from "@/lib/categories";
 import { FadeIn } from "@/components/FadeIn";
-import { Button } from "@/components/Button";
-import { LocationInput } from "@/components/LocationInput";
-
-function defaultStartsAt() {
-  const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
+import { CreateEventForm } from "@/components/CreateEventForm";
 
 const TIPS = [
   "Pick a place that's genuinely public — a business with staff and other customers around, not a private residence.",
@@ -34,67 +25,7 @@ export default async function NewEventPage() {
         </FadeIn>
 
         <FadeIn delay={0.08}>
-          <form action={createEvent} className="flex flex-col gap-4">
-            <div>
-              <label className="text-sm font-medium block mb-1">Title</label>
-              <input
-                name="title"
-                required
-                placeholder="Dinner at the new Thai place"
-                className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium block mb-1">Description</label>
-              <textarea
-                name="description"
-                required
-                rows={3}
-                placeholder="A few details — what to expect, who it's for, anything to bring."
-                className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium block mb-1">
-                Location <span className="text-muted font-normal">(public place)</span>
-              </label>
-              <LocationInput />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium block mb-1">Date & time</label>
-                <input
-                  type="datetime-local"
-                  name="startsAt"
-                  required
-                  defaultValue={defaultStartsAt()}
-                  className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Category</label>
-                <select
-                  name="category"
-                  required
-                  defaultValue={CATEGORIES[0]}
-                  className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <Button type="submit" variant="primary" className="w-full mt-2">
-              Create event
-            </Button>
-          </form>
+          <CreateEventForm />
         </FadeIn>
       </div>
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Home, ShieldCheck, Plus, UserRound, LogIn, Settings } from "lucide-react";
+import { Home, Plus, UserRound, LogIn, Settings } from "lucide-react";
 
 function DockLink({
   href,
@@ -48,7 +48,6 @@ export function MobileDock({ signedIn }: { signedIn: boolean }) {
       style={{ paddingBottom: "clamp(0px, env(safe-area-inset-bottom), 24px)" }}
     >
       <DockLink href="/" label="Events" icon={Home} />
-      <DockLink href="/safety" label="Safety" icon={ShieldCheck} />
 
       <div className="flex flex-1 items-center justify-center">
         <Link href="/events/new" aria-label="Create event" className="-mt-6">

@@ -1,5 +1,6 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
+import { pickWildCandidates } from "@/lib/wildMatch";
 
 export type EventDTO = {
   id: string;
@@ -16,6 +17,8 @@ export type EventDTO = {
   ratingSum: number;
   ratingCount: number;
   ratingAvg: number | null;
+  isWild: boolean;
+  targetHeadcount: number | null;
 };
 
 export type AttendeeDTO = {
@@ -30,6 +33,8 @@ export type RatingDTO = {
   createdAt: Date;
 };
 
+export type AttendanceStatus = "joined" | "invited" | "declined";
+
 export type AttendanceDTO = {
   eventId: string;
   joinedAt: Date;
@@ -37,6 +42,7 @@ export type AttendanceDTO = {
   eventStartsAt: Date;
   eventCategory: string;
   eventCreatorId: string;
+  status: AttendanceStatus;
 };
 
 function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO {
@@ -55,6 +61,8 @@ function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO 
     ratingSum: data.ratingSum ?? 0,
     ratingCount: data.ratingCount ?? 0,
     ratingAvg: data.ratingCount ? data.ratingSum / data.ratingCount : null,
+    isWild: data.isWild ?? false,
+    targetHeadcount: data.targetHeadcount ?? null,
   };
 }
 
@@ -114,10 +122,21 @@ export async function getEventAttendees(eventId: string): Promise<AttendeeDTO[]>
     .collection(`events/${eventId}/attendees`)
     .orderBy("joinedAt", "asc")
     .get();
-  return snap.docs.map((d) => ({
-    userId: d.data().userId,
-    joinedAt: d.data().joinedAt.toDate(),
-  }));
+  return snap.docs
+    .filter((d) => d.data().status === "joined")
+    .map((d) => ({
+      userId: d.data().userId,
+      joinedAt: d.data().joinedAt.toDate(),
+    }));
+}
+
+export async function getAttendeeStatus(
+  eventId: string,
+  userId: string,
+): Promise<AttendanceStatus | null> {
+  const snap = await db.doc(`events/${eventId}/attendees/${userId}`).get();
+  if (!snap.exists) return null;
+  return (snap.data()!.status ?? "joined") as AttendanceStatus;
 }
 
 export async function getEventRatings(eventId: string): Promise<RatingDTO[]> {
@@ -149,6 +168,7 @@ export async function getUserAttendances(userId: string): Promise<AttendanceDTO[
       eventStartsAt: data.eventStartsAt.toDate(),
       eventCategory: data.eventCategory,
       eventCreatorId: data.eventCreatorId,
+      status: (data.status ?? "joined") as AttendanceStatus,
     };
   });
 }
@@ -172,9 +192,11 @@ export async function createEvent(data: {
       attendeeCount: 1,
       ratingSum: 0,
       ratingCount: 0,
+      isWild: false,
     });
     tx.set(eventRef.collection("attendees").doc(data.creatorId), {
       userId: data.creatorId,
+      status: "joined",
       joinedAt: FieldValue.serverTimestamp(),
       eventTitle: data.title,
       eventStartsAt: data.startsAt,
@@ -184,6 +206,105 @@ export async function createEvent(data: {
   });
 
   return eventRef.id;
+}
+
+export async function createWildEventDoc(data: {
+  location: string;
+  latitude: number;
+  longitude: number;
+  startsAt: Date;
+  targetHeadcount: number;
+  creatorId: string;
+}): Promise<string> {
+  const eventRef = db.collection("events").doc();
+  const title = "Wild meetup";
+
+  await db.runTransaction(async (tx) => {
+    tx.set(eventRef, {
+      title,
+      description: "",
+      location: data.location,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      startsAt: data.startsAt,
+      category: "Wild",
+      creatorId: data.creatorId,
+      isWild: true,
+      targetHeadcount: data.targetHeadcount,
+      createdAt: FieldValue.serverTimestamp(),
+      attendeeCount: 1,
+      ratingSum: 0,
+      ratingCount: 0,
+    });
+    tx.set(eventRef.collection("attendees").doc(data.creatorId), {
+      userId: data.creatorId,
+      status: "joined",
+      joinedAt: FieldValue.serverTimestamp(),
+      eventTitle: title,
+      eventStartsAt: data.startsAt,
+      eventCategory: "Wild",
+      eventCreatorId: data.creatorId,
+    });
+  });
+
+  const candidateIds = await pickWildCandidates(
+    data.latitude,
+    data.longitude,
+    new Set([data.creatorId]),
+    data.targetHeadcount - 1,
+  );
+
+  await Promise.all(
+    candidateIds.map((candidateId) =>
+      eventRef
+        .collection("attendees")
+        .doc(candidateId)
+        .set({
+          userId: candidateId,
+          status: "invited",
+          joinedAt: FieldValue.serverTimestamp(),
+          eventTitle: title,
+          eventStartsAt: data.startsAt,
+          eventCategory: "Wild",
+          eventCreatorId: data.creatorId,
+        }),
+    ),
+  );
+
+  return eventRef.id;
+}
+
+/** Invites exactly one replacement candidate if a Wild event is still under its target headcount. */
+async function inviteReplacementIfNeeded(eventRef: FirebaseFirestore.DocumentReference) {
+  const eventSnap = await eventRef.get();
+  if (!eventSnap.exists) return;
+  const event = eventSnap.data()!;
+  if (!event.isWild) return;
+
+  const attendeesSnap = await eventRef.collection("attendees").get();
+  const activeCount = attendeesSnap.docs.filter((d) => d.data().status !== "declined").length;
+  if (activeCount >= event.targetHeadcount) return;
+
+  const excludeIds = new Set(attendeesSnap.docs.map((d) => d.id));
+  excludeIds.add(event.creatorId);
+
+  const [candidateId] = await pickWildCandidates(event.latitude, event.longitude, excludeIds, 1);
+  if (!candidateId) return;
+
+  try {
+    await eventRef.collection("attendees").doc(candidateId).create({
+      userId: candidateId,
+      status: "invited",
+      joinedAt: FieldValue.serverTimestamp(),
+      eventTitle: event.title,
+      eventStartsAt: event.startsAt,
+      eventCategory: event.category,
+      eventCreatorId: event.creatorId,
+    });
+  } catch {
+    // Lost a race to another concurrent decline/leave picking the same
+    // candidate — harmless, the event may just stay one slot short.
+  }
 }
 
 export async function joinEvent(eventId: string, userId: string) {
@@ -200,6 +321,7 @@ export async function joinEvent(eventId: string, userId: string) {
     const event = eventSnap.data()!;
     tx.set(attendeeRef, {
       userId,
+      status: "joined",
       joinedAt: FieldValue.serverTimestamp(),
       eventTitle: event.title,
       eventStartsAt: event.startsAt,
@@ -214,13 +336,48 @@ export async function leaveEvent(eventId: string, userId: string) {
   const eventRef = db.doc(`events/${eventId}`);
   const attendeeRef = eventRef.collection("attendees").doc(userId);
 
-  await db.runTransaction(async (tx) => {
+  const didLeave = await db.runTransaction(async (tx) => {
     const attendeeSnap = await tx.get(attendeeRef);
-    if (!attendeeSnap.exists) return; // not attending — idempotent no-op
+    if (!attendeeSnap.exists || attendeeSnap.data()!.status !== "joined") return false; // idempotent no-op
 
     tx.delete(attendeeRef);
     tx.update(eventRef, { attendeeCount: FieldValue.increment(-1) });
+    return true;
   });
+
+  if (didLeave) {
+    await inviteReplacementIfNeeded(eventRef);
+  }
+}
+
+export async function acceptWildInvite(eventId: string, userId: string) {
+  const eventRef = db.doc(`events/${eventId}`);
+  const attendeeRef = eventRef.collection("attendees").doc(userId);
+
+  await db.runTransaction(async (tx) => {
+    const attendeeSnap = await tx.get(attendeeRef);
+    if (!attendeeSnap.exists || attendeeSnap.data()!.status !== "invited") return; // idempotent no-op
+
+    tx.update(attendeeRef, { status: "joined" });
+    tx.update(eventRef, { attendeeCount: FieldValue.increment(1) });
+  });
+}
+
+export async function declineWildInvite(eventId: string, userId: string) {
+  const eventRef = db.doc(`events/${eventId}`);
+  const attendeeRef = eventRef.collection("attendees").doc(userId);
+
+  const didDecline = await db.runTransaction(async (tx) => {
+    const attendeeSnap = await tx.get(attendeeRef);
+    if (!attendeeSnap.exists || attendeeSnap.data()!.status !== "invited") return false; // idempotent no-op
+
+    tx.update(attendeeRef, { status: "declined" });
+    return true;
+  });
+
+  if (didDecline) {
+    await inviteReplacementIfNeeded(eventRef);
+  }
 }
 
 export async function rateEvent(
@@ -239,7 +396,9 @@ export async function rateEvent(
     const event = eventSnap.data()!;
 
     const attendeeSnap = await tx.get(attendeeRef);
-    if (!attendeeSnap.exists) throw new Error("Only attendees can rate this event");
+    if (!attendeeSnap.exists || attendeeSnap.data()!.status !== "joined") {
+      throw new Error("Only attendees can rate this event");
+    }
 
     if (event.startsAt.toDate() > new Date()) {
       throw new Error("You can rate an event after it happens");

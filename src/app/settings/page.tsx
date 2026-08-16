@@ -2,21 +2,41 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/session";
+import { getUserAttendances } from "@/lib/events";
 import { deleteAccount, signOut, updateNotificationPreference } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { LocationPermission } from "@/components/LocationPermission";
 
+const PRINCIPLES = [
+  {
+    title: "Always meet in public places",
+    body: "Every event on WhoWe should be held somewhere public and populated — a restaurant, cafe, park, or venue. Never a private home on a first meetup.",
+  },
+  {
+    title: "Trust your instincts",
+    body: "If something about an event or a person feels off, don't go. You can back out of an event you've joined at any time.",
+  },
+  {
+    title: "Tell someone your plans",
+    body: "Before heading to a meetup with people you haven't met before, let a friend or family member know where you're going and with whom.",
+  },
+  {
+    title: "Reliability over reviews",
+    body: "Instead of open-ended public reviews of people — which can be misused to harass — we're building a simple reliability signal based on whether people show up to what they join.",
+  },
+];
+
 export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const [hostingCountSnap, attendingCountSnap] = await Promise.all([
+  const [hostingCountSnap, attendances] = await Promise.all([
     db.collection("events").where("creatorId", "==", user.id).count().get(),
-    db.collectionGroup("attendees").where("userId", "==", user.id).count().get(),
+    getUserAttendances(user.id),
   ]);
   const hostingCount = hostingCountSnap.data().count;
-  const attendingCount = attendingCountSnap.data().count;
+  const attendingCount = attendances.filter((a) => a.status === "joined").length;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
@@ -76,7 +96,31 @@ export default async function SettingsPage() {
           <LocationPermission initialLabel={user.locationLabel} />
         </FadeIn>
 
-        <FadeIn delay={0.18} className="border-t-2 border-border pt-6">
+        <FadeIn delay={0.18}>
+          <h2 className="text-sm font-medium mb-3 uppercase tracking-wide text-muted">Safety</h2>
+          <p className="text-muted text-sm mb-4">
+            Meeting new people is the whole point — here&apos;s how we try to make that
+            feel safe.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {PRINCIPLES.map((p) => (
+              <div
+                key={p.title}
+                className="bg-surface border-2 border-foreground rounded-lg px-4 py-3.5 shadow-[3px_3px_0_0_var(--foreground)]"
+              >
+                <div className="font-display text-base font-semibold">{p.title}</div>
+                <p className="text-sm text-muted mt-1.5 leading-relaxed">{p.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted mt-3">
+            WhoWe is an early prototype — in-app reporting, blocking, and identity
+            verification aren&apos;t live yet. Treat every meetup with the same caution
+            you&apos;d use meeting anyone new online.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={0.22} className="border-t-2 border-border pt-6">
           <h2 className="text-sm font-medium mb-1 text-[#8c2f2f]">Danger zone</h2>
           <p className="text-sm text-muted mb-3">
             Permanently delete your profile, hosted events, and RSVPs. This can&apos;t be

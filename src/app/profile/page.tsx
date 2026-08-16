@@ -39,7 +39,7 @@ export default async function ProfilePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const attendances = await getUserAttendances(user.id);
+  const attendances = (await getUserAttendances(user.id)).filter((a) => a.status === "joined");
   const events = await getEventsByIds(attendances.map((a) => a.eventId));
   const orderedEvents = attendances.map((a) => events[a.eventId]).filter((e): e is EventDTO => e != null);
 
