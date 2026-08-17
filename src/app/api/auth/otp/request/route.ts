@@ -57,6 +57,11 @@ export async function POST(request: NextRequest) {
       sendCount,
     });
 
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not set");
+      throw new Error("Email service not configured");
+    }
+
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const result = await resend.emails.send({
