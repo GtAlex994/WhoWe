@@ -80,7 +80,7 @@ export default function SignInPage() {
       });
       if (!sessionRes.ok) throw new Error("Couldn't start a session. Try again.");
       const { needsOnboarding } = await sessionRes.json();
-      router.push(needsOnboarding ? "/onboarding" : "/");
+      window.location.href = needsOnboarding ? "/onboarding" : "/";
     } catch (err) {
       setError(err instanceof Error && err.message ? err.message : "That code doesn't match.");
     } finally {
