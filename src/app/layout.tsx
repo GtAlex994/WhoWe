@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/session";
-import { signOut } from "@/app/actions";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/Button";
 import { MobileDock } from "@/components/MobileDock";
@@ -58,19 +57,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 </Button>
               </Link>
               {user ? (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/profile"
-                    className="text-sm text-muted hover:text-foreground"
-                  >
-                    {user.name}
-                  </Link>
-                  <form action={signOut}>
-                    <button type="submit" className="text-sm text-muted hover:text-foreground cursor-pointer">
-                      Switch
-                    </button>
-                  </form>
-                </div>
+                <Link href="/profile" className="text-sm text-muted hover:text-foreground">
+                  {user.name}
+                </Link>
               ) : (
                 <NavLink href="/sign-in">Sign in</NavLink>
               )}

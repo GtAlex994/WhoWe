@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Settings } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import { getCurrentUser } from "@/lib/session";
+import { signOut } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { StarRating } from "@/components/StarRating";
@@ -82,13 +83,21 @@ export default async function ProfilePage() {
           </div>
         )}
 
-        <div className="flex items-center gap-3 mt-6">
-          <Link href="/profile/edit">
-            <Button variant="secondary">Edit profile</Button>
-          </Link>
-          <Link href="/my-events">
-            <Button variant="secondary">My events</Button>
-          </Link>
+        <div className="flex flex-col gap-3 mt-6">
+          <div className="flex items-center gap-3">
+            <Link href="/profile/edit">
+              <Button variant="secondary">Edit profile</Button>
+            </Link>
+            <Link href="/my-events">
+              <Button variant="secondary">My events</Button>
+            </Link>
+          </div>
+          <form action={signOut}>
+            <Button type="submit" variant="secondary" className="flex items-center gap-2">
+              <LogOut size={16} />
+              Log out
+            </Button>
+          </form>
         </div>
       </FadeIn>
     </div>
