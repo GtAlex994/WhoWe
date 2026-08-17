@@ -143,9 +143,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                       Add your availability and social style to get better matches.
                     </p>
                     <Link
-                      href="/profile/edit"
-                      className="text-sm text-primary font-medium mt-3 inline-block underline hover:text-primary/80"
-                    >
+                      href="/profile/complete" className="text-sm text-primary font-medium mt-3 inline-block underline hover:text-primary/80">
                       Complete profile →
                     </Link>
                   </>
@@ -164,7 +162,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">❤️ My interests</h2>
               {isOwnProfile && (
-                <Link href="/profile/edit" className="text-sm text-primary underline hover:text-primary/80">
+                <Link href="/profile/edit/interests" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
                 </Link>
               )}
@@ -203,7 +201,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">⚡ I'm up for</h2>
               {isOwnProfile && (
-                <Link href="/profile/edit" className="text-sm text-primary underline hover:text-primary/80">
+                <Link href="/profile/edit/activities" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
                 </Link>
               )}
@@ -242,7 +240,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">🗣️ Languages</h2>
               {isOwnProfile && (
-                <Link href="/profile/edit" className="text-sm text-primary underline hover:text-primary/80">
+                <Link href="/profile/edit/languages" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
                 </Link>
               )}
@@ -274,7 +272,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">👥 My social style</h2>
               {isOwnProfile && (
-                <Link href="/profile/edit" className="text-sm text-primary underline hover:text-primary/80">
+                <Link href="/profile/edit/social-style" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
                 </Link>
               )}
@@ -324,7 +322,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">🔎 What I'm looking for</h2>
               {isOwnProfile && (
-                <Link href="/profile/edit" className="text-sm text-primary underline hover:text-primary/80">
+                <Link href="/profile/edit/goals" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
                 </Link>
               )}
