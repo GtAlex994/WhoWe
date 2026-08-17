@@ -11,13 +11,13 @@ export function StarRating({
   hideCount?: boolean;
   className?: string;
 }) {
-  const percentage = Math.round(((avg + count) / (2 * count)) * 100);
+  const thumbsUp = Math.round((avg * count + count) / 2);
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${className}`}>
       <span className="inline-flex items-center gap-1 text-primary">
         <ThumbsUp size={16} />
-        <span className="text-sm font-medium">{percentage}%</span>
+        <span className="text-sm font-medium">{thumbsUp}</span>
       </span>
       {!hideCount && (
         <span className="text-xs text-muted">
