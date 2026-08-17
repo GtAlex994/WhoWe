@@ -21,8 +21,8 @@ export default async function OnboardingPage() {
   if (user.onboardingCompletedAt) redirect("/profile");
 
   const suggestedUsername = suggestUsername(user);
-  const currentInterests = user.interests ? user.interests.split(",") : [];
-  const currentDislikes = user.dislikes ? user.dislikes.split(",") : [];
+  const currentInterests = Array.isArray(user.interests) ? user.interests : [];
+  const currentDislikes = user.dislikes ? (typeof user.dislikes === "string" ? user.dislikes.split(",") : user.dislikes) : [];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 flex flex-col gap-10">

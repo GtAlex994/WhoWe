@@ -55,9 +55,9 @@ export default async function ProfilePage() {
 
         {(user.interests || user.dislikes) && (
           <div className="flex flex-col gap-2 mt-4">
-            {user.interests && (
+            {user.interests && user.interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {user.interests.split(",").map((tag) => (
+                {user.interests.map((tag: string) => (
                   <span
                     key={tag}
                     className="text-xs rounded-full border-2 border-foreground bg-primary text-primary-foreground px-2.5 py-0.5"
@@ -67,9 +67,9 @@ export default async function ProfilePage() {
                 ))}
               </div>
             )}
-            {user.dislikes && (
+            {user.dislikes && Array.isArray(user.dislikes) && user.dislikes.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {user.dislikes.split(",").map((tag) => (
+                {user.dislikes.map((tag: string) => (
                   <span
                     key={tag}
                     className="text-xs rounded-full border-2 border-border text-muted px-2.5 py-0.5"
