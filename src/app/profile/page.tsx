@@ -56,7 +56,7 @@ export default async function ProfilePage() {
 
         {(user.interests || user.dislikes) && (
           <div className="flex flex-col gap-2 mt-4">
-            {user.interests && user.interests.length > 0 && (
+            {user.interests && Array.isArray(user.interests) && user.interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {user.interests.map((tag: string) => (
                   <span
