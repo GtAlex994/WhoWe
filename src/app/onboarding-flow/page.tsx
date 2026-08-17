@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { AvatarSelector } from "@/components/AvatarSelector";
@@ -18,8 +19,6 @@ type OnboardingData = {
   languages: UserLanguage[];
   interests: string[];
   activities: string[];
-  timezone: string;
-  location: string;
   bio: string;
 };
 
@@ -29,56 +28,42 @@ const STEPS = [
     title: "What's your name?",
     description: "This helps others recognize you",
     required: true,
-    dataWeight: 15,
+    dataWeight: 20,
   },
   {
     id: "avatar",
     title: "Choose Your Avatar",
     description: "Pick a style you like. You can always change it later.",
     required: true,
-    dataWeight: 10,
+    dataWeight: 15,
   },
   {
     id: "languages",
     title: "What Languages Do You Speak?",
     description: "Select your languages and proficiency levels.",
     required: true,
-    dataWeight: 15,
+    dataWeight: 20,
   },
   {
     id: "interests",
     title: "What Are Your Interests?",
     description: "Pick at least 5 to help us find better matches for you.",
     required: true,
-    dataWeight: 25,
+    dataWeight: 30,
   },
   {
     id: "activities",
     title: "What Would You Actually Join?",
     description: "Select activities you'd genuinely do with other people.",
     required: true,
-    dataWeight: 20,
-  },
-  {
-    id: "timezone",
-    title: "When Are You Usually Available?",
-    description: "Helps us find groups at times that work for you.",
-    required: false,
-    dataWeight: 5,
-  },
-  {
-    id: "location",
-    title: "Where Are You Located?",
-    description: "Optional, but helps us show nearby events.",
-    required: false,
-    dataWeight: 5,
+    dataWeight: 15,
   },
   {
     id: "bio",
     title: "Tell Us About Yourself",
     description: "Optional bio - what else should people know?",
     required: false,
-    dataWeight: 5,
+    dataWeight: 0,
   },
 ];
 
@@ -110,12 +95,8 @@ function isStepComplete(stepId: string, data: Partial<OnboardingData>): boolean 
       return !!data.interests && data.interests.length >= 5;
     case "activities":
       return !!data.activities && data.activities.length >= 3;
-    case "timezone":
-      return !!data.timezone;
-    case "location":
-      return !!data.location;
     case "bio":
-      return !!data.bio;
+      return true;
     default:
       return false;
   }
@@ -132,7 +113,9 @@ function canProceedToNextStep(currentStepId: string, data: Partial<OnboardingDat
 }
 
 export default function OnboardingFlowPage() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<Partial<OnboardingData>>({
     displayName: "",
     avatarStyle: "avataaars",
@@ -140,8 +123,6 @@ export default function OnboardingFlowPage() {
     languages: [],
     interests: [],
     activities: [],
-    timezone: "",
-    location: "",
     bio: "",
   });
 
@@ -150,13 +131,30 @@ export default function OnboardingFlowPage() {
   const canProceed = canProceedToNextStep(currentStep.id, data);
   const isLastStep = step === STEPS.length - 1;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!canProceed && currentStep.required) return;
-    if (step < STEPS.length - 1) setStep(step + 1);
+
+    if (isLastStep) {
+      await handleComplete();
+    } else {
+      setStep(step + 1);
+    }
   };
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
+  };
+
+  const handleComplete = async () => {
+    setIsSubmitting(true);
+    try {
+      // Save onboarding data and redirect to profile
+      // The form data is submitted as hidden inputs via the onboarding page
+      router.push("/profile");
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -237,61 +235,6 @@ export default function OnboardingFlowPage() {
               />
             )}
 
-            {currentStep.id === "timezone" && (
-              <div className="space-y-3">
-                <select
-                  value={data.timezone || ""}
-                  onChange={(e) => setData({ ...data, timezone: e.target.value })}
-                  className="w-full border-2 border-foreground bg-background rounded-md px-4 py-2.5 outline-none text-base"
-                >
-                  <option value="">Select a timezone (optional)</option>
-                  <option value="UTC-12">UTC-12 (Baker Island)</option>
-                  <option value="UTC-11">UTC-11 (Samoa)</option>
-                  <option value="UTC-10">UTC-10 (Hawaii)</option>
-                  <option value="UTC-9">UTC-9 (Alaska)</option>
-                  <option value="UTC-8">UTC-8 (Pacific)</option>
-                  <option value="UTC-7">UTC-7 (Mountain)</option>
-                  <option value="UTC-6">UTC-6 (Central)</option>
-                  <option value="UTC-5">UTC-5 (Eastern)</option>
-                  <option value="UTC-4">UTC-4 (Atlantic)</option>
-                  <option value="UTC-3">UTC-3 (Brazil)</option>
-                  <option value="UTC-2">UTC-2 (Mid-Atlantic)</option>
-                  <option value="UTC-1">UTC-1 (Azores)</option>
-                  <option value="UTC">UTC (GMT)</option>
-                  <option value="UTC+1">UTC+1 (Europe)</option>
-                  <option value="UTC+2">UTC+2 (Cairo)</option>
-                  <option value="UTC+3">UTC+3 (Moscow)</option>
-                  <option value="UTC+4">UTC+4 (Dubai)</option>
-                  <option value="UTC+5">UTC+5 (Pakistan)</option>
-                  <option value="UTC+5:30">UTC+5:30 (India)</option>
-                  <option value="UTC+6">UTC+6 (Bangladesh)</option>
-                  <option value="UTC+7">UTC+7 (Bangkok)</option>
-                  <option value="UTC+8">UTC+8 (Singapore)</option>
-                  <option value="UTC+9">UTC+9 (Tokyo)</option>
-                  <option value="UTC+10">UTC+10 (Sydney)</option>
-                  <option value="UTC+11">UTC+11 (Solomon Islands)</option>
-                  <option value="UTC+12">UTC+12 (Fiji)</option>
-                </select>
-                <p className="text-xs text-muted">
-                  {data.timezone && `Selected: ${data.timezone}`}
-                </p>
-              </div>
-            )}
-
-            {currentStep.id === "location" && (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="City, Country (optional)"
-                  value={data.location || ""}
-                  onChange={(e) => setData({ ...data, location: e.target.value })}
-                  className="w-full border-2 border-foreground bg-background rounded-md px-4 py-2.5 outline-none text-base"
-                />
-                <p className="text-xs text-muted">
-                  We'll use this to show nearby events and local groups.
-                </p>
-              </div>
-            )}
 
             {currentStep.id === "bio" && (
               <div className="space-y-2">
@@ -315,7 +258,7 @@ export default function OnboardingFlowPage() {
           <Button
             variant="secondary"
             onClick={handleBack}
-            disabled={step === 0}
+            disabled={step === 0 || isSubmitting}
             className="disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ← Back
@@ -325,6 +268,7 @@ export default function OnboardingFlowPage() {
               <Button
                 variant="secondary"
                 onClick={handleNext}
+                disabled={isSubmitting}
               >
                 Skip
               </Button>
@@ -332,10 +276,10 @@ export default function OnboardingFlowPage() {
             <Button
               variant="primary"
               onClick={handleNext}
-              disabled={!canProceed && currentStep.required}
+              disabled={(!canProceed && currentStep.required) || isSubmitting}
               className="disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {isLastStep ? "Complete Setup" : "Continue →"}
+              {isSubmitting ? "Setting up..." : isLastStep ? "Complete Setup" : "Continue →"}
             </Button>
           </div>
         </div>
