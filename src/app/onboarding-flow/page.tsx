@@ -148,9 +148,29 @@ export default function OnboardingFlowPage() {
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
-      // Save onboarding data and redirect to profile
-      // The form data is submitted as hidden inputs via the onboarding page
-      router.push("/profile");
+      // Save onboarding data
+      const response = await fetch("/api/auth/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save onboarding data");
+      }
+
+      // Send verification email
+      const emailRes = await fetch("/api/auth/send-verification-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!emailRes.ok) {
+        throw new Error("Failed to send verification email");
+      }
+
+      // Redirect to email verification page
+      router.push("/verify-email");
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
       setIsSubmitting(false);
