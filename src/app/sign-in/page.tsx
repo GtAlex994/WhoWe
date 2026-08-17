@@ -6,7 +6,6 @@ import { sendSignInLinkToEmail, signInWithCustomToken } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
-import { Squiggle } from "@/components/Squiggle";
 
 type Method = "link" | "code";
 type View = "form" | "link-sent" | "code-sent";
@@ -111,7 +110,6 @@ export default function SignInPage() {
           Small, real-world plans with people who share your interests,
           organized by whoever shows up first.
         </p>
-        <Squiggle className="w-40 h-4 mt-8" color="var(--primary)" />
       </div>
 
       <div className="px-4 sm:px-6 lg:px-14 py-10 lg:py-16 flex flex-col gap-8 max-w-md w-full mx-auto lg:mx-0 justify-center">

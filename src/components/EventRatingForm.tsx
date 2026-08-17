@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/Button";
 
 export function EventRatingForm({
@@ -13,26 +14,37 @@ export function EventRatingForm({
   defaultComment?: string;
 }) {
   const [score, setScore] = useState(defaultScore);
-  const [hover, setHover] = useState(0);
-  const display = hover || score;
 
   return (
     <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="score" value={score} />
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => setScore(n)}
-            onMouseEnter={() => setHover(n)}
-            onMouseLeave={() => setHover(0)}
-            aria-label={`${n} star${n > 1 ? "s" : ""}`}
-            className="text-2xl leading-none cursor-pointer px-0.5"
-          >
-            <span className={n <= display ? "text-primary" : "text-border"}>★</span>
-          </button>
-        ))}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setScore(1)}
+          aria-label="Thumbs up"
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-md border-2 transition-colors ${
+            score === 1
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-surface border-foreground hover:bg-surface-muted"
+          }`}
+        >
+          <ThumbsUp size={20} />
+          <span className="text-sm font-medium">Good</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setScore(-1)}
+          aria-label="Thumbs down"
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-md border-2 transition-colors ${
+            score === -1
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-surface border-foreground hover:bg-surface-muted"
+          }`}
+        >
+          <ThumbsDown size={20} />
+          <span className="text-sm font-medium">Not for me</span>
+        </button>
       </div>
       <textarea
         name="comment"
@@ -47,7 +59,7 @@ export function EventRatingForm({
         disabled={score === 0}
         className="self-start disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        {defaultScore ? "Update rating" : "Submit rating"}
+        {defaultScore ? "Update" : "Submit"}
       </Button>
     </form>
   );
