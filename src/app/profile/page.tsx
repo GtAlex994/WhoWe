@@ -63,7 +63,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     {user.username && <p className="text-muted text-sm mt-0.5">@{user.username}</p>}
                   </div>
                   {isOwnProfile && (
-                    <Link href="/profile/edit" className="text-sm text-primary underline hover:text-primary/80">
+                    <Link href="/profile/edit/basic" className="text-sm text-primary underline hover:text-primary/80">
                       Edit
                     </Link>
                   )}
@@ -93,7 +93,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 ) : isOwnProfile ? (
                   <p className="text-muted mt-3 text-sm italic">
                     No bio yet.{" "}
-                    <Link href="/profile/edit" className="text-primary underline">
+                    <Link href="/profile/edit/basic" className="text-primary underline">
                       Add bio
                     </Link>
                   </p>
@@ -187,7 +187,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
                 <p className="text-sm text-muted mb-3">Tell us what you're into to improve your matches.</p>
-                <Link href="/profile/edit" className="text-sm text-primary underline">
+                <Link href="/profile/edit/interests" className="text-sm text-primary underline">
                   Add interests
                 </Link>
               </div>
@@ -226,7 +226,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
                 <p className="text-sm text-muted mb-3">What would you actually like to do with other people?</p>
-                <Link href="/profile/edit" className="text-sm text-primary underline">
+                <Link href="/profile/edit/activities" className="text-sm text-primary underline">
                   Add activities
                 </Link>
               </div>
@@ -258,7 +258,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
                 <p className="text-sm text-muted mb-3">Add the languages you speak.</p>
-                <Link href="/profile/edit" className="text-sm text-primary underline">
+                <Link href="/profile/edit/languages" className="text-sm text-primary underline">
                   Add language
                 </Link>
               </div>
@@ -308,7 +308,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
                 <p className="text-sm text-muted mb-3">Tell us how you like to socialise.</p>
-                <Link href="/profile/edit" className="text-sm text-primary underline">
+                <Link href="/profile/edit/social-style" className="text-sm text-primary underline">
                   Set preferences
                 </Link>
               </div>
@@ -339,7 +339,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
                 <p className="text-sm text-muted mb-3">Help others understand what you're looking for.</p>
-                <Link href="/profile/edit" className="text-sm text-primary underline">
+                <Link href="/profile/edit/goals" className="text-sm text-primary underline">
                   Set goals
                 </Link>
               </div>
@@ -384,7 +384,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <section className="mb-8 border-t-2 border-foreground pt-8">
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">⚙️ Account & settings</h2>
               <div className="border-2 border-foreground rounded-md p-4 space-y-2">
-                <Link href="/profile/edit" className="block py-2 text-sm hover:text-primary transition-colors">
+                <Link href="/profile/edit/basic" className="block py-2 text-sm hover:text-primary transition-colors">
                   Edit profile →
                 </Link>
                 <Link href="/settings" className="block py-2 text-sm border-t-2 border-foreground hover:text-primary transition-colors">
