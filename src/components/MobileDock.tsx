@@ -51,14 +51,25 @@ export function MobileDock({ signedIn }: { signedIn: boolean }) {
       {signedIn && <DockLink href="/my-events" label="My events" icon={CalendarDays} />}
 
       <div className="flex flex-1 items-center justify-center">
-        <Link href="/events/new" aria-label="Create event" className="-mt-6">
-          <motion.span
-            whileTap={{ scale: 0.92 }}
-            className="flex items-center justify-center h-14 w-14 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[3px_3px_0_0_var(--foreground)]"
-          >
-            <Plus size={26} strokeWidth={2.5} />
-          </motion.span>
-        </Link>
+        {signedIn ? (
+          <Link href="/events/new" aria-label="Create event" className="-mt-6">
+            <motion.span
+              whileTap={{ scale: 0.92 }}
+              className="flex items-center justify-center h-14 w-14 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[3px_3px_0_0_var(--foreground)]"
+            >
+              <Plus size={26} strokeWidth={2.5} />
+            </motion.span>
+          </Link>
+        ) : (
+          <Link href="/sign-in" aria-label="Sign in" className="-mt-6">
+            <motion.span
+              whileTap={{ scale: 0.92 }}
+              className="flex items-center justify-center h-14 w-14 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[3px_3px_0_0_var(--foreground)]"
+            >
+              <LogIn size={26} strokeWidth={2.5} />
+            </motion.span>
+          </Link>
+        )}
       </div>
 
       {signedIn && <DockLink href="/chats" label="Chats" icon={MessageCircle} />}

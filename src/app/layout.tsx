@@ -51,11 +51,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <NavLink href="/">Events</NavLink>
               {user && <NavLink href="/my-events">My events</NavLink>}
               {user && <NavLink href="/chats">Chats</NavLink>}
-              <Link href="/events/new">
-                <Button variant="primary" className="px-4 py-2 text-sm">
-                  Create event
-                </Button>
-              </Link>
+              {user && (
+                <Link href="/events/new">
+                  <Button variant="primary" className="px-4 py-2 text-sm">
+                    Create event
+                  </Button>
+                </Link>
+              )}
               {user ? (
                 <Link href="/profile" className="text-sm text-muted hover:text-foreground">
                   {user.name}
