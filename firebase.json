@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "whowe",
+    "site": "whowe-2026",
     "public": ".next/standalone/public",
     "ignore": [
       "firebase.json",
