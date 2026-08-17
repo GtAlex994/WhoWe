@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { completeOnboarding, skipOnboarding } from "@/app/actions";
+import { completeOnboarding } from "@/app/actions";
 import { CATEGORIES } from "@/lib/categories";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";

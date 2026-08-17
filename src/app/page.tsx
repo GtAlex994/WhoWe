@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { listUpcomingEvents, getUserAttendances, getEventsByIds, type EventDTO, filterEventsByDistance } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users";
 import { CATEGORIES } from "@/lib/categories";
@@ -30,6 +31,11 @@ export default async function HomePage({
 }) {
   const { q, category, near } = await searchParams;
   const currentUser = await getCurrentUser();
+
+  // Redirect to onboarding if user is logged in but hasn't completed setup
+  if (currentUser && !currentUser.onboardingCompletedAt) {
+    redirect("/onboarding-flow");
+  }
 
   let events = await listUpcomingEvents({ category, q });
 
