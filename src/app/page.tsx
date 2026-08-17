@@ -86,6 +86,15 @@ export default async function HomePage({
         </FadeIn>
       )}
 
+      <FadeIn delay={0.04} className="hidden sm:block">
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
+          Upcoming events
+        </h1>
+        <p className="text-muted mt-4 text-lg max-w-xl">
+          Small, casual plans. See what&apos;s happening nearby and join in.
+        </p>
+      </FadeIn>
+
       <FadeIn delay={0.08}>
         <SearchForm q={q} category={category} sortNear={sortNear} hasUserLocation={hasUserLocation} />
       </FadeIn>
