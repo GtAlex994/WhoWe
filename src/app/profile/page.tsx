@@ -146,9 +146,9 @@ export default async function ProfilePage() {
                   <Link href="/profile/edit" className="text-primary text-sm underline">Edit</Link>
                 </div>
                 <div className="space-y-2">
-                  {user.languages.map((lang: any) => (
-                    <div key={lang.code} className="flex items-center justify-between border-b-2 border-foreground pb-2 last:border-0">
-                      <span className="text-sm">{lang.name}</span>
+                  {user.languages.map((lang: any, idx: number) => (
+                    <div key={`${lang.language}-${idx}`} className="flex items-center justify-between border-b-2 border-foreground pb-2 last:border-0">
+                      <span className="text-sm">{lang.language}</span>
                       <span className="text-xs text-muted capitalize">{lang.proficiency}</span>
                     </div>
                   ))}
