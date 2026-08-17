@@ -59,16 +59,24 @@ export async function POST(request: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: "WhoWe <noreply@whowe.live>",
       to: email,
       subject: "Your WhoWe verification code",
       html: `<p>Your verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p>`,
     });
+
+    if (result.error) {
+      console.error("Resend API error:", result.error);
+      return NextResponse.json(
+        { error: "We couldn't send the verification code. Please check your email address and try again." },
+        { status: 400 }
+      );
+    }
   } catch (error) {
     console.error("Failed to send email via Resend:", error);
     return NextResponse.json(
-      { error: "Failed to send verification code" },
+      { error: "We couldn't send the verification code. Please try again." },
       { status: 500 }
     );
   }
