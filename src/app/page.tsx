@@ -6,7 +6,6 @@ import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
 import { CategoryTag } from "@/components/CategoryTag";
-import { Squiggle } from "@/components/Squiggle";
 import { StarRating } from "@/components/StarRating";
 import { WildInviteBanner } from "@/components/WildInviteBanner";
 import { getHostRatings } from "@/lib/ratings";
@@ -81,9 +80,8 @@ export default async function HomePage({
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-8">
       <FadeIn>
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight inline-block relative">
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
           Upcoming events
-          <Squiggle className="absolute -bottom-2 left-0 w-40 h-3" />
         </h1>
         <p className="text-muted mt-4 text-lg max-w-xl">
           Small, casual plans. See what&apos;s happening nearby and join in.

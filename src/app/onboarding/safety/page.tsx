@@ -4,7 +4,6 @@ import { getCurrentUser } from "@/lib/session";
 import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
-import { Squiggle } from "@/components/Squiggle";
 
 const PRINCIPLES = [
   {
@@ -32,9 +31,8 @@ export default async function OnboardingSafetyPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 flex flex-col gap-8">
       <FadeIn>
-        <h1 className="text-4xl font-semibold tracking-tight inline-block relative">
+        <h1 className="text-4xl font-semibold tracking-tight">
           One more thing
-          <Squiggle className="absolute -bottom-2 left-0 w-40 h-3" />
         </h1>
         <p className="text-muted mt-4 text-lg">
           Meeting new people is the whole point. Here&apos;s how we try to make that
