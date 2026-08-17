@@ -8,7 +8,7 @@ import { signOut } from "@/app/actions";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/Button";
 import { MobileDock } from "@/components/MobileDock";
-import { AutoHideHeader } from "@/components/AutoHideHeader";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AutoHideHeader>
+        <ConditionalHeader>
           <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center justify-between gap-4">
             <Link href="/" className="shrink-0">
               <Image src="/WhoWe.png" alt="WhoWe" width={120} height={40} priority />
@@ -88,7 +88,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               )}
             </div>
           </div>
-        </AutoHideHeader>
+        </ConditionalHeader>
         <main className="flex-1 relative w-full pb-20 lg:pb-0">{children}</main>
         <footer className="hidden lg:block border-t-2 border-foreground mt-16">
           <div className="w-full px-4 sm:px-6 lg:px-10 py-6 text-sm text-muted flex items-center justify-between">
