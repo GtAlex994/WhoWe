@@ -58,26 +58,20 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   </Button>
                 </Link>
               )}
-              {user ? (
+              {user && (
                 <Link href="/profile" className="text-sm text-muted hover:text-foreground">
                   {user.name}
                 </Link>
-              ) : (
-                <NavLink href="/sign-in">Sign in</NavLink>
               )}
             </nav>
 
-            <div className="flex lg:hidden items-center gap-3 text-sm">
-              {user ? (
+            {user && (
+              <div className="flex lg:hidden items-center gap-3 text-sm">
                 <Link href="/profile" className="text-muted hover:text-foreground">
                   {user.name}
                 </Link>
-              ) : (
-                <Link href="/sign-in" className="text-primary font-medium">
-                  Sign in
-                </Link>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </AutoHideHeader>
         <main className="flex-1 relative w-full pb-20 lg:pb-0">{children}</main>
