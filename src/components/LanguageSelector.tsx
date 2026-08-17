@@ -39,15 +39,13 @@ export function LanguageSelector({ defaultLanguages = [], onSelect }: LanguageSe
     <div className="space-y-4">
       <div className="space-y-2">
         <label className="text-sm font-medium">Add a language</label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Search languages..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none text-sm"
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Search languages..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none text-sm"
+        />
 
         {search && availableLanguages.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
@@ -56,7 +54,7 @@ export function LanguageSelector({ defaultLanguages = [], onSelect }: LanguageSe
                 key={lang}
                 type="button"
                 onClick={() => addLanguage(lang)}
-                className="px-3 py-1 text-sm rounded-full border-2 border-foreground bg-surface hover:bg-surface-muted"
+                className="px-3 py-1 text-sm rounded-full border-2 border-foreground bg-surface hover:bg-surface-muted transition-colors"
               >
                 + {lang}
               </button>
@@ -67,30 +65,35 @@ export function LanguageSelector({ defaultLanguages = [], onSelect }: LanguageSe
 
       {languages.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm font-medium">Your languages</p>
+          <p className="text-sm font-medium">Your languages ({languages.length})</p>
           {languages.map((lang) => (
-            <div key={lang.language} className="flex items-center gap-3 p-3 rounded-lg border-2 border-foreground/20">
-              <div className="flex-1">
+            <div key={lang.language} className="flex flex-col gap-2 p-3 rounded-lg border-2 border-foreground/20">
+              <div className="flex items-center justify-between">
                 <p className="font-medium">{lang.language}</p>
+                <button
+                  type="button"
+                  onClick={() => removeLanguage(lang.language)}
+                  className="text-xs text-[#8c2f2f] hover:text-foreground font-medium"
+                >
+                  Remove
+                </button>
               </div>
-              <select
-                value={lang.proficiency}
-                onChange={(e) => updateProficiency(lang.language, e.target.value as (typeof PROFICIENCY_LEVELS)[number])}
-                className="text-sm border-2 border-foreground rounded px-2 py-1 bg-surface outline-none"
-              >
+              <div className="flex flex-wrap gap-2">
                 {PROFICIENCY_LEVELS.map((level) => (
-                  <option key={level} value={level}>
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => updateProficiency(lang.language, level)}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-full border-2 transition-colors ${
+                      lang.proficiency === level
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-surface border-foreground/30 text-foreground hover:border-foreground"
+                    }`}
+                  >
                     {level}
-                  </option>
+                  </button>
                 ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => removeLanguage(lang.language)}
-                className="text-sm text-[#8c2f2f] hover:text-foreground font-medium"
-              >
-                Remove
-              </button>
+              </div>
             </div>
           ))}
         </div>

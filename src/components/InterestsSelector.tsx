@@ -27,23 +27,28 @@ export function InterestsSelector({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {selected.map((interest) => (
-          <button
-            key={interest}
-            type="button"
-            onClick={() => toggleInterest(interest)}
-            className="px-3 py-1.5 text-sm rounded-full bg-primary text-primary-foreground border-2 border-primary flex items-center gap-2"
-          >
-            {interest}
-            <span className="ml-1">✕</span>
-          </button>
-        ))}
-      </div>
+      {selected.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-muted mb-2">Selected ({selected.length}/{minRequired})</p>
+          <div className="flex flex-wrap gap-2">
+            {selected.map((interest) => (
+              <button
+                key={interest}
+                type="button"
+                onClick={() => toggleInterest(interest)}
+                className="px-3 py-1.5 text-sm rounded-full bg-primary text-primary-foreground border-2 border-primary flex items-center gap-2 hover:opacity-90 transition-opacity"
+              >
+                {interest}
+                <span>✕</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {selected.length < minRequired && (
         <p className="text-xs text-[#8c2f2f]">
-          Please select at least {minRequired} interests ({selected.length}/{minRequired})
+          Select at least {minRequired - selected.length} more ({selected.length}/{minRequired})
         </p>
       )}
 
@@ -64,24 +69,22 @@ export function InterestsSelector({
               </span>
             </button>
 
-            {expandedCategory === category.name && (
-              <div className="p-3 border-t-2 border-foreground/20 bg-surface-muted flex flex-wrap gap-2">
-                {category.items.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => toggleInterest(item)}
-                    className={`px-3 py-1.5 rounded-full border-2 transition-colors text-sm font-medium ${
-                      selected.includes(item)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-surface border-foreground text-foreground hover:bg-surface-muted"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="p-3 border-t-2 border-foreground/20 bg-surface-muted flex flex-wrap gap-2">
+              {category.items.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => toggleInterest(item)}
+                  className={`px-3 py-1.5 rounded-full border-2 transition-colors text-sm font-medium ${
+                    selected.includes(item)
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-surface border-foreground text-foreground hover:bg-surface-muted"
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
           </div>
         ))}
       </div>

@@ -9,6 +9,7 @@ type ChipSelectProps = {
   multiple?: boolean;
   required?: boolean;
   minSelection?: number;
+  onChange?: (selected: string[]) => void;
 };
 
 export function ChipSelect({
@@ -18,15 +19,19 @@ export function ChipSelect({
   multiple = true,
   required = false,
   minSelection = 0,
+  onChange,
 }: ChipSelectProps) {
   const [selected, setSelected] = useState<string[]>(defaultValue);
 
   const toggleOption = (option: string) => {
+    let newSelected: string[];
     if (multiple) {
-      setSelected((prev) => (prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]));
+      newSelected = selected.includes(option) ? selected.filter((o) => o !== option) : [...selected, option];
     } else {
-      setSelected([option]);
+      newSelected = [option];
     }
+    setSelected(newSelected);
+    onChange?.(newSelected);
   };
 
   return (
