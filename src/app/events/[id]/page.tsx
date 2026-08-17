@@ -88,7 +88,7 @@ export default async function EventDetailPage({
         </FadeIn>
 
         <FadeIn delay={0.1} className="text-sm text-muted flex items-center gap-2 flex-wrap">
-          <span>Hosted by {people[event.creatorId]?.name ?? "someone"}</span>
+          <span>Hosted by @{people[event.creatorId]?.username ?? "someone"}</span>
           {hostRating && <StarRating avg={hostRating.avg} count={hostRating.count} />}
         </FadeIn>
 

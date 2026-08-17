@@ -28,14 +28,14 @@ const STEPS = [
   {
     id: "name",
     title: "What's your name?",
-    description: "This helps others recognize you",
+    description: "Private — only you will see this. Others will know you by your username.",
     required: true,
     dataWeight: 15,
   },
   {
     id: "username",
     title: "Choose Your Username",
-    description: "A unique username so others can find and message you",
+    description: "Your public identity. Other users will know you by this. Cannot be changed later.",
     required: true,
     dataWeight: 15,
   },
@@ -307,6 +307,9 @@ export default function OnboardingFlowPage() {
                   {usernameError && <p className="text-red-600 text-sm">{usernameError}</p>}
                   <p className="text-xs text-muted">
                     {data.username?.length || 0}/20 characters (letters, numbers, underscore)
+                  </p>
+                  <p className="text-xs text-accent font-medium bg-accent/10 p-2 rounded">
+                    ⚠️ This cannot be changed once set. Choose carefully.
                   </p>
                 </div>
               </div>

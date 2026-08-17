@@ -137,7 +137,7 @@ export default async function HomePage({
                   </span>
                 </div>
                 <div className="text-xs text-muted mt-1 flex items-center gap-2">
-                  <span>Hosted by {creators[event.creatorId]?.name ?? "someone"}</span>
+                  <span>Hosted by @{creators[event.creatorId]?.username ?? "someone"}</span>
                   {hostRatings[event.creatorId] && (
                     <StarRating avg={hostRatings[event.creatorId].avg} count={hostRatings[event.creatorId].count} hideCount />
                   )}

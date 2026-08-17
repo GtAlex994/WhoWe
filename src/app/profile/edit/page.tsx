@@ -18,7 +18,7 @@ export default async function EditProfilePage() {
       <FadeIn>
         <h1 className="text-4xl font-semibold tracking-tight">Edit profile</h1>
         <p className="text-muted mt-1.5">
-          This is what other people see when they visit your profile.
+          Your name is private. Other users will only see your username.
         </p>
       </FadeIn>
 
@@ -36,14 +36,16 @@ export default async function EditProfilePage() {
 
           <div>
             <label className="text-sm font-medium block mb-1">Username</label>
-            <input
-              name="username"
-              required
-              defaultValue={user.username ?? ""}
-              pattern="[a-z0-9_]+"
-              className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none max-w-xs"
-            />
-            <p className="text-xs text-muted mt-1">Lowercase letters, numbers, and underscores only.</p>
+            <div className="flex items-center gap-2 max-w-xs">
+              <input
+                type="text"
+                disabled
+                defaultValue={user.username ?? ""}
+                className="flex-1 border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none opacity-60 cursor-not-allowed"
+              />
+              <span className="text-xl">@</span>
+            </div>
+            <p className="text-xs text-muted mt-1">Cannot be changed after setup. Choose wisely!</p>
           </div>
 
           <div>
