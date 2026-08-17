@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listUpcomingEvents, getUserAttendances, getEventsByIds, type EventDTO } from "@/lib/events";
+import { listUpcomingEvents, getUserAttendances, getEventsByIds, type EventDTO, filterEventsByDistance } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users";
 import { CATEGORIES } from "@/lib/categories";
 import { FadeIn } from "@/components/FadeIn";
@@ -31,7 +31,13 @@ export default async function HomePage({
   const { q, category, near } = await searchParams;
   const currentUser = await getCurrentUser();
 
-  const events = await listUpcomingEvents({ category, q });
+  let events = await listUpcomingEvents({ category, q });
+
+  // Filter events by user's max distance preference
+  if (currentUser?.locationLat != null && currentUser?.locationLng != null) {
+    const maxDistance = currentUser.matchingPreferences?.maxDistance || 50;
+    events = filterEventsByDistance(events, currentUser.locationLat, currentUser.locationLng, maxDistance);
+  }
 
   let pendingInvites: EventDTO[] = [];
   if (currentUser) {

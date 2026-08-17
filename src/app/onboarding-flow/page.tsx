@@ -14,12 +14,14 @@ import { type UserLanguage } from "@/lib/languages";
 
 type OnboardingData = {
   displayName: string;
+  username: string;
   avatarStyle: AvatarStyle;
   avatarSeed: string;
   languages: UserLanguage[];
   interests: string[];
   activities: string[];
   bio: string;
+  maxDistance: number;
 };
 
 const STEPS = [
@@ -28,35 +30,49 @@ const STEPS = [
     title: "What's your name?",
     description: "This helps others recognize you",
     required: true,
-    dataWeight: 20,
+    dataWeight: 15,
+  },
+  {
+    id: "username",
+    title: "Choose Your Username",
+    description: "A unique username so others can find and message you",
+    required: true,
+    dataWeight: 15,
   },
   {
     id: "avatar",
     title: "Choose Your Avatar",
     description: "Pick a style you like. You can always change it later.",
     required: true,
-    dataWeight: 15,
+    dataWeight: 12,
   },
   {
     id: "languages",
     title: "What Languages Do You Speak?",
     description: "Select your languages and proficiency levels.",
     required: true,
-    dataWeight: 20,
+    dataWeight: 15,
   },
   {
     id: "interests",
     title: "What Are Your Interests?",
     description: "Pick at least 5 to help us find better matches for you.",
     required: true,
-    dataWeight: 30,
+    dataWeight: 20,
   },
   {
     id: "activities",
     title: "What Would You Actually Join?",
     description: "Select activities you'd genuinely do with other people.",
     required: true,
-    dataWeight: 15,
+    dataWeight: 12,
+  },
+  {
+    id: "maxDistance",
+    title: "How Far Are You Willing To Go?",
+    description: "Set the maximum distance for events you want to see",
+    required: true,
+    dataWeight: 11,
   },
   {
     id: "bio",
@@ -87,6 +103,8 @@ function isStepComplete(stepId: string, data: Partial<OnboardingData>): boolean 
   switch (stepId) {
     case "name":
       return !!data.displayName?.trim();
+    case "username":
+      return !!data.username?.trim() && data.username.length >= 3;
     case "avatar":
       return !!data.avatarStyle && !!data.avatarSeed;
     case "languages":
@@ -95,6 +113,8 @@ function isStepComplete(stepId: string, data: Partial<OnboardingData>): boolean 
       return !!data.interests && data.interests.length >= 5;
     case "activities":
       return !!data.activities && data.activities.length >= 3;
+    case "maxDistance":
+      return data.maxDistance !== undefined && data.maxDistance > 0;
     case "bio":
       return true;
     default:
@@ -116,14 +136,18 @@ export default function OnboardingFlowPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const [data, setData] = useState<Partial<OnboardingData>>({
     displayName: "",
+    username: "",
     avatarStyle: "avataaars",
     avatarSeed: Math.random().toString(36).substring(7),
     languages: [],
     interests: [],
     activities: [],
     bio: "",
+    maxDistance: 50,
   });
 
   const currentStep = STEPS[step];
@@ -145,9 +169,55 @@ export default function OnboardingFlowPage() {
     if (step > 0) setStep(step - 1);
   };
 
+  const checkUsernameAvailability = async (username: string) => {
+    if (username.length < 3) {
+      setUsernameError("Username must be at least 3 characters");
+      return false;
+    }
+
+    setCheckingUsername(true);
+    setUsernameError(null);
+
+    try {
+      const res = await fetch("/api/auth/check-username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+
+      const result = await res.json();
+
+      if (!result.available) {
+        setUsernameError("That username is taken. Try another one.");
+        return false;
+      }
+
+      setUsernameError(null);
+      return true;
+    } catch (error) {
+      console.error("Failed to check username:", error);
+      setUsernameError("Error checking username availability");
+      return false;
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
+
+  const handleUsernameChange = (username: string) => {
+    setData({ ...data, username });
+    setUsernameError(null);
+  };
+
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
+      // Verify username one more time before submitting
+      const isAvailable = await checkUsernameAvailability(data.username || "");
+      if (!isAvailable) {
+        setIsSubmitting(false);
+        return;
+      }
+
       // Save onboarding data
       const response = await fetch("/api/auth/onboarding", {
         method: "POST",
@@ -222,6 +292,26 @@ export default function OnboardingFlowPage() {
               </div>
             )}
 
+            {currentStep.id === "username" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="username"
+                    value={data.username || ""}
+                    onChange={(e) => handleUsernameChange(e.target.value)}
+                    autoFocus
+                    disabled={checkingUsername}
+                    className="w-full border-2 border-foreground bg-background rounded-md px-4 py-2.5 outline-none text-base disabled:opacity-50"
+                  />
+                  {usernameError && <p className="text-red-600 text-sm">{usernameError}</p>}
+                  <p className="text-xs text-muted">
+                    {data.username?.length || 0}/20 characters (letters, numbers, underscore)
+                  </p>
+                </div>
+              </div>
+            )}
+
             {currentStep.id === "avatar" && (
               <AvatarSelector
                 seed={data.avatarSeed || "seed"}
@@ -255,6 +345,29 @@ export default function OnboardingFlowPage() {
               />
             )}
 
+            {currentStep.id === "maxDistance" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-semibold">{data.maxDistance} km</span>
+                  <span className="text-sm text-muted">radius</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="200"
+                  step="5"
+                  value={data.maxDistance || 50}
+                  onChange={(e) => setData({ ...data, maxDistance: parseInt(e.target.value) })}
+                  className="w-full h-2 bg-surface border-2 border-foreground rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="grid grid-cols-4 gap-2 text-xs text-muted text-center">
+                  <div>5 km</div>
+                  <div>70 km</div>
+                  <div>135 km</div>
+                  <div>200 km</div>
+                </div>
+              </div>
+            )}
 
             {currentStep.id === "bio" && (
               <div className="space-y-2">

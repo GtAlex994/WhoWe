@@ -1,6 +1,7 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import { pickWildCandidates } from "@/lib/wildMatch";
+import { distanceKm } from "@/lib/geo";
 
 export type EventDTO = {
   id: string;
@@ -433,5 +434,25 @@ export async function rateEvent(
       hostRatingSum: newHostSum,
       hostRatingCount: newHostCount,
     });
+  });
+}
+
+export function filterEventsByDistance(
+  events: EventDTO[],
+  userLat: number | null,
+  userLng: number | null,
+  maxDistanceKm: number | null,
+): EventDTO[] {
+  if (!userLat || !userLng || !maxDistanceKm) {
+    return events;
+  }
+
+  return events.filter((event) => {
+    if (!event.latitude || !event.longitude) return true;
+    const distance = distanceKm(
+      { lat: userLat, lng: userLng },
+      { lat: event.latitude, lng: event.longitude },
+    );
+    return distance <= maxDistanceKm;
   });
 }

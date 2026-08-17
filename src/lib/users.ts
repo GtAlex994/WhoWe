@@ -22,6 +22,8 @@ export type UserDTO = {
   interests: string[];
   activities: string[];
   languages: UserLanguage[];
+  username: string | null;
+  userId: string | null;
 
   // Social & lifestyle (future, not in Phase 1)
   socialStyle: {
@@ -60,7 +62,6 @@ export type UserDTO = {
   eventsHosted: number;
 
   // Legacy fields (deprecated)
-  username: string | null;
   dislikes: string | null;
 };
 
@@ -80,6 +81,8 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
     interests: data.interests ?? [],
     activities: data.activities ?? [],
     languages: data.languages ?? [],
+    username: data.username ?? null,
+    userId: data.userId ?? null,
     socialStyle: data.socialStyle ?? {
       personality: null,
       groupSize: null,
@@ -106,7 +109,6 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
     hostRatingAvg: data.hostRatingCount ? data.hostRatingSum / data.hostRatingCount : null,
     eventsAttended: data.eventsAttended ?? 0,
     eventsHosted: data.eventsHosted ?? 0,
-    username: data.username ?? null,
     dislikes: data.dislikes ?? null,
   };
 }
@@ -173,4 +175,13 @@ export async function getUsersByIds(ids: string[]): Promise<Record<string, UserD
     }
   }
   return result;
+}
+
+export function generateUserId(): string {
+  return String(Math.floor(1000000 + Math.random() * 9000000));
+}
+
+export async function isUserIdAvailable(userId: string): Promise<boolean> {
+  const snap = await db.doc(`userIds/${userId}`).get();
+  return !snap.exists;
 }
