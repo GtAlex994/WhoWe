@@ -1,6 +1,7 @@
 import { createHash, randomInt } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
+import { Resend } from "resend";
 import { db } from "@/lib/firebase-admin";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
@@ -55,15 +56,22 @@ export async function POST(request: NextRequest) {
     sendCount,
   });
 
-  await db.collection("mail").add({
-    to: [email],
-    message: {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  try {
+    await resend.emails.send({
+      from: "WhoWe <onboarding@resend.dev>",
+      to: email,
       subject: "Your WhoWe verification code",
-      text: `Your verification code is ${code}. It expires in 10 minutes.`,
       html: `<p>Your verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p>`,
-    },
-    createdAt: FieldValue.serverTimestamp(),
-  });
+    });
+  } catch (error) {
+    console.error("Failed to send email via Resend:", error);
+    return NextResponse.json(
+      { error: "Failed to send verification code" },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }
