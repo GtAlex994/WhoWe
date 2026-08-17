@@ -30,14 +30,9 @@ export default async function OnboardingPage() {
         <div>
           <h1 className="text-4xl font-semibold tracking-tight">Set up your profile</h1>
           <p className="text-muted mt-1.5">
-            Takes a minute, or skip it entirely and fill it in later.
+            Just a few quick things to get started.
           </p>
         </div>
-        <form action={skipOnboarding}>
-          <button type="submit" className="text-sm text-muted hover:text-foreground cursor-pointer shrink-0">
-            Skip for now
-          </button>
-        </form>
       </FadeIn>
 
       <FadeIn delay={0.06}>
@@ -70,7 +65,7 @@ export default async function OnboardingPage() {
 
           <div>
             <label className="text-sm font-medium block mb-2">
-              Your location <span className="text-muted font-normal">(optional, helps show events near you)</span>
+              Your location <span className="text-muted font-normal">(required to show nearby events)</span>
             </label>
             <LocationPermission initialLabel={user.locationLabel} />
           </div>

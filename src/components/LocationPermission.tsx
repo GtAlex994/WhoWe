@@ -50,12 +50,15 @@ export function LocationPermission({
 
   if (status === "done") {
     return (
-      <div className="flex items-center gap-2 text-sm">
-        <span className="text-accent">📍</span>
-        <span>
-          Location enabled{label ? ` near ${label}` : ""}
-        </span>
-      </div>
+      <>
+        <input type="hidden" name="locationEnabled" value="true" required />
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-accent">✓ 📍</span>
+          <span className="text-accent font-medium">
+            Location enabled{label ? ` near ${label}` : ""}
+          </span>
+        </div>
+      </>
     );
   }
 
