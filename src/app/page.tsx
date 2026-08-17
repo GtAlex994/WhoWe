@@ -79,15 +79,6 @@ export default async function HomePage({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-8">
-      <FadeIn>
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
-          Upcoming events
-        </h1>
-        <p className="text-muted mt-4 text-lg max-w-xl">
-          Small, casual plans. See what&apos;s happening nearby and join in.
-        </p>
-      </FadeIn>
-
       {pendingInvites.length > 0 && (
         <FadeIn delay={0.04}>
           <WildInviteBanner invites={pendingInvites} />
