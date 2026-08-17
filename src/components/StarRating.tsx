@@ -1,3 +1,5 @@
+import { ThumbsUp } from "lucide-react";
+
 export function StarRating({
   avg,
   count,
@@ -9,17 +11,17 @@ export function StarRating({
   hideCount?: boolean;
   className?: string;
 }) {
-  const rounded = Math.round(avg);
+  const percentage = Math.round(((avg + count) / (2 * count)) * 100);
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${className}`}>
-      <span className="text-primary tracking-tighter" aria-hidden>
-        {"★".repeat(rounded)}
-        <span className="text-border">{"★".repeat(5 - rounded)}</span>
+      <span className="inline-flex items-center gap-1 text-primary">
+        <ThumbsUp size={16} />
+        <span className="text-sm font-medium">{percentage}%</span>
       </span>
       {!hideCount && (
         <span className="text-xs text-muted">
-          {avg.toFixed(1)} ({count})
+          ({count})
         </span>
       )}
     </span>

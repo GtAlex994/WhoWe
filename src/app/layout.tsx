@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/session";
@@ -28,6 +29,9 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "WhoWe: meet up, together",
   description: "Organize small local events and meet people who want to join in.",
+  icons: {
+    icon: "/We.png",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -41,8 +45,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <AutoHideHeader>
           <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center justify-between gap-4">
-            <Link href="/" className="font-display text-xl font-semibold tracking-tight shrink-0">
-              Who<span className="text-primary">We</span>
+            <Link href="/" className="shrink-0">
+              <Image src="/WhoWe.png" alt="WhoWe" width={120} height={40} priority />
             </Link>
             <nav className="hidden lg:flex items-center gap-5">
               <NavLink href="/">Events</NavLink>
