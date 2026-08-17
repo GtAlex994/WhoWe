@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
   try {
     await resend.emails.send({
-      from: "WhoWe <onboarding@resend.dev>",
+      from: "WhoWe <noreply@whowe.live>",
       to: email,
       subject: "Your WhoWe verification code",
       html: `<p>Your verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p>`,
