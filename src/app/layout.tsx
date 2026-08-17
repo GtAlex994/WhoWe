@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   title: "WhoWe: meet up, together",
   description: "Organize small local events and meet people who want to join in.",
   icons: {
-    icon: "/We.png",
+    icon: "/favicon.png",
   },
 };
 
