@@ -75,4 +75,7 @@ app.all("*", async (req, res) => {
 });
 
 // Export the Cloud Function
-export const api = onRequest({ memory: "512MB", timeoutSeconds: 60 }, app);
+export const api = onRequest(
+  { memory: "512MB", timeoutSeconds: 60, secrets: ["RESEND_API_KEY"] },
+  app
+);
