@@ -10,6 +10,15 @@ import { Button } from "@/components/Button";
 type Method = "link" | "code";
 type View = "form" | "link-sent" | "code-sent";
 
+async function parseJsonResponse(res: Response) {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error("Something went wrong. Please try again.");
+  }
+}
+
 export default function SignInPage() {
   const router = useRouter();
   const [method, setMethod] = useState<Method>("link");
@@ -37,7 +46,7 @@ export default function SignInPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
-        const data = await res.json();
+        const data = await parseJsonResponse(res);
         if (!res.ok) throw new Error(data.error);
         setCode("");
         setView("code-sent");
@@ -68,7 +77,7 @@ export default function SignInPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res);
       if (!res.ok) throw new Error(data.error);
 
       const credential = await signInWithCustomToken(auth, data.customToken);
@@ -78,8 +87,8 @@ export default function SignInPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
-      if (!sessionRes.ok) throw new Error("Couldn't start a session. Try again.");
-      const { needsOnboarding } = await sessionRes.json();
+      const { needsOnboarding, error: sessionError } = await parseJsonResponse(sessionRes);
+      if (!sessionRes.ok) throw new Error(sessionError ?? "Couldn't start a session. Try again.");
       window.location.href = needsOnboarding ? "/onboarding" : "/";
     } catch (err) {
       setError(err instanceof Error && err.message ? err.message : "That code doesn't match.");
