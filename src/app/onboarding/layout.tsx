@@ -1,11 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function OnboardingLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b-2 border-foreground bg-background/95">
@@ -15,9 +11,7 @@ export default function OnboardingLayout({
           </Link>
         </div>
       </header>
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

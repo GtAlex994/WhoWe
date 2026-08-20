@@ -28,7 +28,7 @@ export function ConditionalHeader({ children }: ConditionalHeaderProps) {
     return <AutoHideHeader>{children}</AutoHideHeader>;
   }
 
-  const isOnboarding = pathname?.includes("/onboarding-flow");
+  const isOnboarding = pathname?.startsWith("/onboarding");
 
   if (isOnboarding) {
     return null;

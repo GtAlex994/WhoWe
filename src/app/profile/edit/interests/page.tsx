@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { CATEGORIES } from "@/lib/categories";
-import { updateInterests } from "@/app/profile-actions";
+import { INTEREST_CATEGORIES } from "@/lib/interests";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { InterestsForm } from "./interests-form";
 
@@ -10,11 +9,7 @@ export default async function EditInterestsPage() {
   if (!user) redirect("/sign-in");
 
   const currentInterests = Array.isArray(user.interests) ? user.interests : [];
-  const currentDislikes = Array.isArray(user.dislikes)
-    ? user.dislikes
-    : user.dislikes
-      ? String(user.dislikes).split(",").map((s) => s.trim())
-      : [];
+  const currentDislikes = Array.isArray(user.dislikes) ? user.dislikes : [];
 
   return (
     <ProfileEditor
@@ -22,7 +17,7 @@ export default async function EditInterestsPage() {
       description="Help us understand what you enjoy. This helps match you with people who share similar interests."
     >
       <InterestsForm
-        categories={CATEGORIES as unknown as string[]}
+        categories={INTEREST_CATEGORIES}
         defaultInterests={currentInterests}
         defaultDislikes={currentDislikes}
       />

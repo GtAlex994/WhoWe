@@ -12,7 +12,7 @@ const TIPS = [
 export default async function NewEventPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
-  if (!user.onboardingCompletedAt) redirect("/onboarding-flow");
+  if (!user.onboardingCompletedAt) redirect("/onboarding");
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">

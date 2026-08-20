@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateSocialStyle } from "@/app/profile-actions";
 import { Button } from "@/components/Button";
+import { ChipSelector } from "@/components/ChipSelector";
 import type { UserDTO } from "@/lib/users";
 
 interface SocialStyleFormProps {
@@ -25,7 +26,7 @@ export function SocialStyleForm({
   const [isPending, startTransition] = useTransition();
   const [groupSize, setGroupSize] = useState(user.socialStyle?.groupSize || "");
   const [planning, setPlanning] = useState(user.socialStyle?.planning || "");
-  const [pace, setPace] = useState(user.socialStyle?.pace || "");
+  const [pace, setPace] = useState<string[]>(user.socialStyle?.pace ?? []);
   const [personality, setPersonality] = useState(user.socialStyle?.personality || "");
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +39,7 @@ export function SocialStyleForm({
         const formData = new FormData();
         if (groupSize) formData.append("groupSize", groupSize);
         if (planning) formData.append("planning", planning);
-        if (pace) formData.append("pace", pace);
+        if (pace.length > 0) formData.append("pace", pace.join(","));
         if (personality) formData.append("personality", personality);
         await updateSocialStyle(formData);
         router.push("/profile");
@@ -100,23 +101,9 @@ export function SocialStyleForm({
 
       {/* Activity Vibe */}
       <div>
-        <label htmlFor="pace" className="text-sm font-medium block mb-2">
-          Activity Vibe
-        </label>
-        <p className="text-xs text-muted mb-3">What kind of energy are you looking for?</p>
-        <select
-          id="pace"
-          value={pace}
-          onChange={(e) => setPace(e.target.value)}
-          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-        >
-          <option value="">Select...</option>
-          {activityVibes.map((vibe) => (
-            <option key={vibe} value={vibe}>
-              {vibe}
-            </option>
-          ))}
-        </select>
+        <p className="text-sm font-medium block mb-2">Activity vibe</p>
+        <p className="text-xs text-muted mb-3">What kind of energy are you looking for? Pick as many as apply.</p>
+        <ChipSelector items={activityVibes} selected={pace} onChange={setPace} ariaLabel="Activity vibe" />
       </div>
 
       {/* Personality */}

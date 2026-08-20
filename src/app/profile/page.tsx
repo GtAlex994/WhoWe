@@ -1,12 +1,15 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { getCurrentUser } from "@/lib/session";
 import { signOut } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
-import { calculateProfileCompletion } from "@/lib/users";
+import { calculateProfileCompletion, getMissingCompletionItems } from "@/lib/users";
 import type { UserLanguage } from "@/lib/languages";
+import { getAvatarUrl, type AvatarStyle } from "@/lib/avatars";
+import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
 
 function formatDate(date: Date | null): string {
   if (!date) return "";
@@ -25,22 +28,19 @@ function calculateAge(birthDate: string | null): number | null {
   return age;
 }
 
-interface ProfilePageProps {
-  params: Promise<{ username?: string }>;
-}
-
-export default async function ProfilePage({ params }: ProfilePageProps) {
-  const resolvedParams = await params;
-  const isOtherUserProfile = !!resolvedParams?.username;
-
+// This route always shows the signed-in user's own profile — full precision,
+// every field. Other members' profiles are served separately, from
+// /profile/[username], which projects through toPublicProfile() so private
+// fields and exact location are never exposed there.
+export default async function ProfilePage() {
   const currentUser = await getCurrentUser();
   if (!currentUser) redirect("/sign-in");
 
-  // For now, show own profile. Later can fetch other user by username
   const user = currentUser;
   const isOwnProfile = true;
 
   const profileCompletion = calculateProfileCompletion(user);
+  const missingCompletionItems = getMissingCompletionItems(user);
   const age = calculateAge(user.dateOfBirth);
 
   return (
@@ -52,9 +52,26 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {/* Avatar and Header */}
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="h-24 w-24 rounded-full bg-accent-soft text-accent border-2 border-foreground flex items-center justify-center text-3xl font-display font-semibold">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
+                {user.avatar?.style === "color-initials" ? (
+                  <ColorInitialsAvatar
+                    initials={user.name.charAt(0).toUpperCase()}
+                    color={user.avatar.seed}
+                    className="h-24 w-24 text-3xl"
+                  />
+                ) : user.avatar ? (
+                  <Image
+                    src={getAvatarUrl(user.avatar.seed, user.avatar.style as Exclude<AvatarStyle, "color-initials">)}
+                    alt=""
+                    width={96}
+                    height={96}
+                    unoptimized
+                    className="h-24 w-24 rounded-full border-2 border-foreground"
+                  />
+                ) : (
+                  <div className="h-24 w-24 rounded-full bg-accent-soft text-accent border-2 border-foreground flex items-center justify-center text-3xl font-display font-semibold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
 
               <div className="flex-1">
@@ -71,11 +88,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 </div>
 
                 {/* Location and age */}
-                <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
                   {user.locationLabel && (
                     <span>📍 {user.locationLabel}</span>
                   )}
                   {age && <span>· {age} years old</span>}
+                  {isOwnProfile && (
+                    <span>
+                      · Search radius: {user.matchingPreferences.maxDistance ?? 50} km{" "}
+                      <Link href="/profile/edit/distance" className="text-primary underline hover:text-primary/80">
+                        Edit
+                      </Link>
+                    </span>
+                  )}
                 </div>
 
                 {/* Verification badges */}
@@ -104,15 +129,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mt-8">
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <div className="text-2xl font-semibold">{user.eventsAttended}</div>
                 <div className="text-xs text-muted mt-1">Events joined</div>
               </div>
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <div className="text-2xl font-semibold">{user.eventsHosted}</div>
                 <div className="text-xs text-muted mt-1">Events hosted</div>
               </div>
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <div className="text-2xl font-semibold">—</div>
                 <div className="text-xs text-muted mt-1">Would meet again</div>
               </div>
@@ -141,7 +166,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 ) : (
                   <>
                     <p className="text-sm text-muted mt-1">
-                      Add your availability and social style to get better matches.
+                      Add {missingCompletionItems.join(", ")} to get better matches.
                     </p>
                     <Link
                       href="/profile/complete" className="text-sm text-primary font-medium mt-3 inline-block underline hover:text-primary/80">
@@ -161,7 +186,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.1}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">❤️ My interests</h2>
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">❤️ My interests</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/interests" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -174,19 +199,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 {user.interests.slice(0, 6).map((interest: string) => (
                   <span
                     key={interest}
-                    className="text-sm rounded-full border-2 border-foreground bg-primary text-primary-foreground px-3 py-1"
+                    className="text-sm rounded-md border-2 border-foreground bg-primary text-primary-foreground px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]"
                   >
                     {interest}
                   </span>
                 ))}
                 {user.interests.length > 6 && (
-                  <button className="text-sm rounded-full border-2 border-foreground px-3 py-1 text-muted hover:text-foreground">
+                  <button className="text-sm rounded-md border-2 border-foreground px-3 py-1 text-muted hover:text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px transition-all">
                     +{user.interests.length - 6} more
                   </button>
                 )}
               </div>
             ) : isOwnProfile ? (
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">Tell us what you&apos;re into to improve your matches.</p>
                 <Link href="/profile/edit/interests" className="text-sm text-primary underline">
                   Add interests
@@ -200,7 +225,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.12}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">⚡ I&apos;m up for</h2>
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">⚡ I&apos;m up for</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/activities" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -213,19 +238,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 {user.activities.slice(0, 5).map((activity: string) => (
                   <span
                     key={activity}
-                    className="text-sm rounded-full border-2 border-foreground px-3 py-1"
+                    className="text-sm rounded-md border-2 border-foreground px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]"
                   >
                     {activity}
                   </span>
                 ))}
                 {user.activities.length > 5 && (
-                  <button className="text-sm rounded-full border-2 border-foreground px-3 py-1 text-muted hover:text-foreground">
+                  <button className="text-sm rounded-md border-2 border-foreground px-3 py-1 text-muted hover:text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px transition-all">
                     +{user.activities.length - 5} more
                   </button>
                 )}
               </div>
             ) : isOwnProfile ? (
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">What would you actually like to do with other people?</p>
                 <Link href="/profile/edit/activities" className="text-sm text-primary underline">
                   Add activities
@@ -239,7 +264,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.14}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">🗣️ Languages</h2>
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">🗣️ Languages</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/languages" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -257,7 +282,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 ))}
               </div>
             ) : isOwnProfile ? (
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">Add the languages you speak.</p>
                 <Link href="/profile/edit/languages" className="text-sm text-primary underline">
                   Add language
@@ -271,7 +296,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.16}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">👥 My social style</h2>
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">👥 My social style</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/social-style" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -279,12 +304,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               )}
             </div>
 
-            {user.socialStyle && (user.socialStyle.personality || user.socialStyle.groupSize || user.socialStyle.pace || user.socialStyle.planning) ? (
+            {user.socialStyle && (user.socialStyle.personality || user.socialStyle.groupSize || user.socialStyle.pace.length > 0 || user.socialStyle.planning) ? (
               <div className="border-2 border-foreground rounded-md p-4 space-y-3">
                 {user.socialStyle.groupSize && (
                   <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
                     <span className="text-sm text-muted">Group size</span>
-                    <span className="text-sm capitalize">{user.socialStyle.groupSize} people</span>
+                    <span className="text-sm capitalize">{user.socialStyle.groupSize}</span>
                   </div>
                 )}
                 {user.socialStyle.planning && (
@@ -293,10 +318,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     <span className="text-sm capitalize">{user.socialStyle.planning}</span>
                   </div>
                 )}
-                {user.socialStyle.pace && (
+                {user.socialStyle.pace.length > 0 && (
                   <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
                     <span className="text-sm text-muted">Activity vibe</span>
-                    <span className="text-sm capitalize">{user.socialStyle.pace}</span>
+                    <span className="text-sm capitalize">{user.socialStyle.pace.join(", ")}</span>
                   </div>
                 )}
                 {user.socialStyle.personality && (
@@ -307,7 +332,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 )}
               </div>
             ) : isOwnProfile ? (
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">Tell us how you like to socialise.</p>
                 <Link href="/profile/edit/social-style" className="text-sm text-primary underline">
                   Set preferences
@@ -321,7 +346,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.18}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">🔎 What I&apos;m looking for</h2>
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">🔎 What I&apos;m looking for</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/goals" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -332,13 +357,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {user.lookingFor && Array.isArray(user.lookingFor) && user.lookingFor.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {user.lookingFor.map((item: string) => (
-                  <span key={item} className="text-sm rounded-full border-2 border-foreground bg-surface px-3 py-1">
+                  <span key={item} className="text-sm rounded-md border-2 border-foreground bg-surface px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]">
                     {item}
                   </span>
                 ))}
               </div>
             ) : isOwnProfile ? (
-              <div className="border-2 border-foreground rounded-md p-4 text-center">
+              <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">Help others understand what you&apos;re looking for.</p>
                 <Link href="/profile/edit/goals" className="text-sm text-primary underline">
                   Set goals
@@ -351,7 +376,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         {/* WhoWe Activity */}
         <FadeIn delay={0.2}>
           <section className="mb-8 border-t-2 border-foreground pt-8">
-            <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">🛡️ WhoWe activity</h2>
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2 mb-4">🛡️ WhoWe activity</h2>
             <div className="border-2 border-foreground rounded-md p-4 space-y-3">
               {user.emailVerifiedAt && (
                 <div className="flex items-center justify-between pb-3 border-b-2 border-foreground">
@@ -383,7 +408,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         {isOwnProfile && (
           <FadeIn delay={0.22}>
             <section className="mb-8 border-t-2 border-foreground pt-8">
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">⚙️ Account & settings</h2>
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2 mb-4">⚙️ Account & settings</h2>
               <div className="border-2 border-foreground rounded-md p-4 space-y-2">
                 <Link href="/profile/edit/basic" className="block py-2 text-sm hover:text-primary transition-colors">
                   Edit profile →

@@ -6,9 +6,10 @@ import { useTransition } from "react";
 import { updateInterests } from "@/app/profile-actions";
 import { ChipSelector } from "@/components/ChipSelector";
 import { Button } from "@/components/Button";
+import type { InterestCategory } from "@/lib/interests";
 
 interface InterestsFormProps {
-  categories: string[];
+  categories: InterestCategory[];
   defaultInterests: string[];
   defaultDislikes: string[];
 }
@@ -46,19 +47,49 @@ export function InterestsForm({ categories, defaultInterests, defaultDislikes }:
       )}
 
       {/* Things I enjoy */}
-      <div>
-        <h2 className="text-lg font-semibold mb-2">❤️ Things I enjoy</h2>
-        <p className="text-sm text-muted mb-4">Select categories that describe your interests</p>
-        <ChipSelector items={categories} selected={interests} onChange={setInterests} />
-        {interests.length === 0 && <p className="text-xs text-muted mt-3 italic">No interests selected yet</p>}
+      <div className="space-y-4">
+        <div>
+          <h2 className="font-display text-lg font-semibold mb-2">❤️ Things I enjoy</h2>
+          <p className="text-sm text-muted mb-4">Select what describes your interests</p>
+        </div>
+        {categories.map((category) => (
+          <div key={category.name} className="border-2 border-foreground rounded-lg p-3 shadow-[2px_2px_0_0_var(--foreground)]">
+            <p className="text-sm font-medium mb-2">
+              {category.emoji} {category.name}
+            </p>
+            <ChipSelector
+              items={category.items}
+              selected={interests}
+              onChange={setInterests}
+              disabledItems={dislikes}
+              ariaLabel={category.name}
+            />
+          </div>
+        ))}
+        {interests.length === 0 && <p className="text-xs text-muted italic">No interests selected yet</p>}
       </div>
 
       {/* Things I'd rather avoid */}
-      <div className="border-t-2 border-foreground pt-6">
-        <h2 className="text-lg font-semibold mb-2">👎 Things I&apos;d rather avoid</h2>
-        <p className="text-sm text-muted mb-4">Optional: Let us know what you&apos;re not into</p>
-        <ChipSelector items={categories} selected={dislikes} onChange={setDislikes} />
-        {dislikes.length === 0 && <p className="text-xs text-muted mt-3 italic">No dislikes selected yet</p>}
+      <div className="border-t-2 border-foreground pt-6 space-y-4">
+        <div>
+          <h2 className="font-display text-lg font-semibold mb-2">👎 Things I&apos;d rather avoid</h2>
+          <p className="text-sm text-muted mb-4">Optional: Let us know what you&apos;re not into</p>
+        </div>
+        {categories.map((category) => (
+          <div key={category.name} className="border-2 border-foreground rounded-lg p-3 shadow-[2px_2px_0_0_var(--foreground)]">
+            <p className="text-sm font-medium mb-2">
+              {category.emoji} {category.name}
+            </p>
+            <ChipSelector
+              items={category.items}
+              selected={dislikes}
+              onChange={setDislikes}
+              disabledItems={interests}
+              ariaLabel={`${category.name} — avoid`}
+            />
+          </div>
+        ))}
+        {dislikes.length === 0 && <p className="text-xs text-muted italic">No dislikes selected yet</p>}
       </div>
 
       {/* Actions */}

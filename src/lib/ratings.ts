@@ -1,4 +1,4 @@
-import { getUsersByIds } from "@/lib/users";
+import { getUsersByIds } from "@/lib/users-server";
 
 export type RatingSummary = { avg: number; count: number };
 

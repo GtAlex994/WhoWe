@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listUpcomingEvents, getUserAttendances, getEventsByIds, type EventDTO, filterEventsByDistance } from "@/lib/events";
-import { getUsersByIds } from "@/lib/users";
-import { CATEGORIES } from "@/lib/categories";
+import { getUsersByIds } from "@/lib/users-server";
 import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
@@ -27,22 +26,25 @@ function formatWhen(date: Date) {
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; near?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; near?: string; showAll?: string }>;
 }) {
-  const { q, category, near } = await searchParams;
+  const { q, category, near, showAll } = await searchParams;
   const currentUser = await getCurrentUser();
 
   // Redirect to onboarding if user is logged in but hasn't completed setup
   if (currentUser && !currentUser.onboardingCompletedAt) {
-    redirect("/onboarding-flow");
+    redirect("/onboarding");
   }
 
-  let events = await listUpcomingEvents({ category, q });
+  const allEvents = await listUpcomingEvents({ category, q });
+  let events = allEvents;
 
   // Filter events by user's max distance preference
-  if (currentUser?.locationLat != null && currentUser?.locationLng != null) {
+  let distanceFilterActive = false;
+  if (showAll !== "1" && currentUser?.locationLat != null && currentUser?.locationLng != null) {
     const maxDistance = currentUser.matchingPreferences?.maxDistance || 50;
     events = filterEventsByDistance(events, currentUser.locationLat, currentUser.locationLng, maxDistance);
+    distanceFilterActive = events.length < allEvents.length;
   }
 
   let pendingInvites: EventDTO[] = [];
@@ -112,12 +114,39 @@ export default async function HomePage({
       </FadeIn>
 
       {eventsWithDistance.length === 0 ? (
-        <FadeIn delay={0.16} className="py-16 text-center text-muted">
-          No events match yet.{" "}
-          <Link href="/events/new" className="text-primary hover:underline">
-            Start one
-          </Link>
-          .
+        <FadeIn delay={0.16} className="py-16 text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">We&apos;re still finding plans near you</h2>
+          <p className="text-muted mt-3 max-w-md mx-auto">
+            {currentUser && (currentUser.interests.length > 0 || currentUser.activities.length > 0) ? (
+              <>
+                Nothing matching{" "}
+                {[...currentUser.interests, ...currentUser.activities].slice(0, 2).map((tag, i, arr) => (
+                  <span key={tag}>
+                    <strong>{tag}</strong>
+                    {i < arr.length - 1 ? " or " : ""}
+                  </span>
+                ))}{" "}
+                nearby right now. Try expanding your area, explore all events, or start something simple.
+              </>
+            ) : (
+              "Try expanding your area, explore all events, or start something simple."
+            )}
+          </p>
+          <div className="flex flex-wrap justify-center gap-3 mt-6">
+            <Link href="/events/new">
+              <Button variant="primary">Start an event</Button>
+            </Link>
+            {distanceFilterActive && (
+              <Link href="?showAll=1">
+                <Button variant="secondary">Browse all events</Button>
+              </Link>
+            )}
+            {currentUser && (
+              <Link href="/profile/edit/basic">
+                <Button variant="secondary">Adjust my area</Button>
+              </Link>
+            )}
+          </div>
         </FadeIn>
       ) : (
         <StaggerList className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">

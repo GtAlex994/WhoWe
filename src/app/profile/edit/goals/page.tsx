@@ -1,19 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { ProfileEditor } from "@/components/ProfileEditor";
+import { GOALS } from "@/lib/social";
 import { GoalsForm } from "./goals-form";
-
-const GOALS = [
-  "Make new friends",
-  "Find people with shared interests",
-  "Join casual local plans",
-  "Explore the city",
-  "Try new activities",
-  "Build a regular social circle",
-  "Attend small-group events",
-  "Host events",
-  "Language exchange",
-];
 
 export default async function EditGoalsPage() {
   const user = await getCurrentUser();

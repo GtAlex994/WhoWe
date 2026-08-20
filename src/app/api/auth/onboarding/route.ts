@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { auth, db } from "@/lib/firebase-admin";
 import { sanitizeUsername, generateUserId } from "@/lib/users";
-import type { UserLanguage } from "@/lib/languages";
+import { PROFICIENCY_LEVELS, type UserLanguage } from "@/lib/languages";
 
 async function generateUniqueUserId(): Promise<string> {
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -17,7 +17,6 @@ async function generateUniqueUserId(): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get session cookie from request
     const sessionCookie = request.cookies.get("whowe_session")?.value;
     if (!sessionCookie) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
       const decoded = await auth.verifySessionCookie(sessionCookie);
       uid = decoded.uid;
     } catch {
-      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid or expired session" }, { status: 401 });
     }
 
     const data = await request.json();
@@ -37,60 +36,100 @@ export async function POST(request: NextRequest) {
       username,
       avatarStyle,
       avatarSeed,
-      languages,
+      bio,
+      locationLabel,
+      locationLat,
+      locationLng,
+      locationPrecision,
       interests,
       activities,
-      bio,
-      maxDistance,
+      dislikes,
+      languages,
+      socialStyle,
+      lookingFor,
+      consent,
     } = data;
 
-    // Validate required fields
-    if (!displayName || !username || !avatarStyle || !avatarSeed || !languages?.length || !interests?.length || !activities?.length || !maxDistance) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!displayName?.trim() || !username || !avatarStyle || !avatarSeed) {
+      return NextResponse.json({ error: "Missing required profile fields." }, { status: 400 });
+    }
+    if (!locationLabel || typeof locationLat !== "number" || typeof locationLng !== "number") {
+      return NextResponse.json({ error: "Choose your area to continue." }, { status: 400 });
+    }
+    if (!Array.isArray(interests) || interests.length < 3) {
+      return NextResponse.json({ error: "Choose at least 3 interests." }, { status: 400 });
+    }
+    if (!Array.isArray(activities) || activities.length < 3) {
+      return NextResponse.json({ error: "Choose at least 3 activities." }, { status: 400 });
+    }
+    const cleanDislikes: string[] = Array.isArray(dislikes) ? dislikes : [];
+    if (interests.some((i: string) => cleanDislikes.includes(i))) {
+      return NextResponse.json(
+        { error: "Something can't be both an interest and something you'd rather avoid." },
+        { status: 400 },
+      );
+    }
+    if (!Array.isArray(languages) || languages.length < 1 || !languages.every((l: UserLanguage) => PROFICIENCY_LEVELS.includes(l.proficiency))) {
+      return NextResponse.json({ error: "Add at least one language and proficiency level." }, { status: 400 });
+    }
+    if (!socialStyle?.groupSize) {
+      return NextResponse.json({ error: "Choose a preferred group size." }, { status: 400 });
+    }
+    if (!Array.isArray(lookingFor) || lookingFor.length < 1) {
+      return NextResponse.json({ error: "Choose at least one goal." }, { status: 400 });
+    }
+    if (!consent?.termsAccepted || !consent?.safetyAcknowledged) {
+      return NextResponse.json({ error: "Please confirm both checkboxes to continue." }, { status: 400 });
     }
 
     const sanitized = sanitizeUsername(username);
     if (!sanitized || sanitized.length < 3) {
-      return NextResponse.json({ error: "Invalid username" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid username." }, { status: 400 });
     }
 
-    // Generate unique 7-digit ID
     const userId = await generateUniqueUserId();
 
-    // Use transaction to ensure username uniqueness and create user ID mapping
     await db.runTransaction(async (tx) => {
       const usernameRef = db.doc(`usernames/${sanitized}`);
       const usernameSnap = await tx.get(usernameRef);
-
       if (usernameSnap.exists) {
-        throw new Error("Username already taken");
+        throw new Error("USERNAME_TAKEN");
       }
 
-      // Reserve username
       tx.set(usernameRef, { uid });
-
-      // Create user ID mapping
       tx.set(db.doc(`userIds/${userId}`), { uid });
-
-      // Update user document with onboarding data
       tx.update(db.doc(`users/${uid}`), {
         name: displayName.trim(),
         username: sanitized,
         userId,
-        avatar: {
-          style: avatarStyle,
-          seed: avatarSeed,
-        },
-        languages,
+        avatar: { style: avatarStyle, seed: avatarSeed },
+        bio: bio?.trim() || "",
+        locationLabel,
+        locationLat,
+        locationLng,
+        locationPrecision: locationPrecision === "suburb-and-city" ? "suburb-and-city" : "city",
+        locationVerifiedAt: FieldValue.serverTimestamp(),
         interests,
         activities,
-        bio: bio?.trim() || "",
+        dislikes: cleanDislikes,
+        languages,
+        socialStyle: {
+          groupSize: socialStyle.groupSize,
+          planning: socialStyle.planning ?? null,
+          pace: Array.isArray(socialStyle.pace) ? socialStyle.pace : [],
+          personality: socialStyle.personality ?? null,
+        },
+        lookingFor,
         matchingPreferences: {
           ageRange: null,
-          maxDistance: maxDistance,
+          maxDistance: 50,
           groupSize: null,
           preferredLanguages: languages.map((l: UserLanguage) => l.language),
           eventTypes: [],
+        },
+        onboardingConsent: {
+          termsAcceptedAt: FieldValue.serverTimestamp(),
+          safetyAcknowledgedAt: FieldValue.serverTimestamp(),
         },
         onboardingCompletedAt: FieldValue.serverTimestamp(),
       });
@@ -98,10 +137,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, userId });
   } catch (error) {
-    console.error("Onboarding error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Onboarding failed" },
-      { status: 500 }
-    );
+    if (error instanceof Error && error.message === "USERNAME_TAKEN") {
+      return NextResponse.json({ error: "That username is already taken. Try another." }, { status: 409 });
+    }
+    console.error("Failed in onboarding submit:", error);
+    return NextResponse.json({ error: "Something went wrong saving your profile. Please try again." }, { status: 500 });
   }
 }

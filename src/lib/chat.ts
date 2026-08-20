@@ -1,5 +1,5 @@
 import { db } from "@/lib/firebase-admin";
-import { getUsersByIds } from "@/lib/users";
+import { getUsersByIds } from "@/lib/users-server";
 import { REACTION_EMOJI, type ReactionSummary } from "@/lib/reactions";
 
 export type ChatMessageDTO = {

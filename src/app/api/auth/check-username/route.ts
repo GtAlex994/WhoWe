@@ -21,9 +21,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ available });
   } catch (error) {
     console.error("Check username error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Check failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "We couldn't check that username right now. Please try again." }, { status: 500 });
   }
 }

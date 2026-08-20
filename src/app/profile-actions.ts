@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, clearCurrentUser } from "@/lib/session";
 import { db } from "@/lib/firebase-admin";
 import { revalidatePath } from "next/cache";
-import { sanitizeUsername, reserveUsername } from "@/lib/users";
+import { isValidMaxDistance } from "@/lib/users";
 
 export async function updateBasicProfile(formData: FormData) {
   const user = await getCurrentUser();
@@ -37,10 +37,14 @@ export async function updateInterests(formData: FormData) {
   const interests = interestsRaw ? String(interestsRaw).trim().split(",").filter(Boolean) : [];
   const dislikes = dislikesRaw ? String(dislikesRaw).trim().split(",").filter(Boolean) : [];
 
+  if (interests.some((i) => dislikes.includes(i))) {
+    throw new Error("Something can't be both an interest and something you'd rather avoid.");
+  }
+
   const userRef = db.doc(`users/${user.id}`);
   await userRef.update({
     interests: interests.length > 0 ? interests : null,
-    dislikes: dislikes.length > 0 ? dislikes : null,
+    dislikes,
   });
 
   revalidatePath("/profile");
@@ -93,7 +97,8 @@ export async function updateSocialStyle(formData: FormData) {
 
   const groupSize = formData.get("groupSize");
   const planning = formData.get("planning");
-  const pace = formData.get("pace");
+  const paceRaw = formData.get("pace");
+  const pace = paceRaw ? String(paceRaw).trim().split(",").filter(Boolean) : [];
   const personality = formData.get("personality");
   const availability = formData.get("availability");
 
@@ -101,10 +106,26 @@ export async function updateSocialStyle(formData: FormData) {
   await userRef.update({
     "socialStyle.groupSize": groupSize || null,
     "socialStyle.planning": planning || null,
-    "socialStyle.pace": pace || null,
+    "socialStyle.pace": pace,
     "socialStyle.personality": personality || null,
     availability: availability ? String(availability).trim().split(",").filter(Boolean) : null,
   });
+
+  revalidatePath("/profile");
+  redirect("/profile");
+}
+
+export async function updateMaxDistance(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const maxDistance = Number(formData.get("maxDistance"));
+  if (!isValidMaxDistance(maxDistance)) {
+    throw new Error("Search radius must be between 5 and 200 km.");
+  }
+
+  const userRef = db.doc(`users/${user.id}`);
+  await userRef.update({ "matchingPreferences.maxDistance": maxDistance });
 
   revalidatePath("/profile");
   redirect("/profile");

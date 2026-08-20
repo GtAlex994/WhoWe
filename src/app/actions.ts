@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { db, auth } from "@/lib/firebase-admin";
 import { getCurrentUser, clearCurrentUser } from "@/lib/session";
-import { sanitizeUsername, reserveUsername } from "@/lib/users";
+import { sanitizeUsername } from "@/lib/users";
+import { reserveUsername } from "@/lib/users-server";
 import {
   createEvent as createEventDoc,
   createWildEventDoc,
@@ -19,58 +20,6 @@ import {
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
 
-export async function completeOnboarding(formData: FormData) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/sign-in");
-
-  const username = sanitizeUsername(String(formData.get("username") ?? ""));
-  if (!username) throw new Error("Username is required");
-
-  const interests = String(formData.get("interests") ?? "").trim();
-  const dislikes = String(formData.get("dislikes") ?? "").trim();
-
-  const userRef = db.doc(`users/${user.id}`);
-  await db.runTransaction(async (tx) => {
-    await reserveUsername(tx, user.id, username, user.username);
-    tx.update(userRef, {
-      username,
-      interests: interests || null,
-      dislikes: dislikes || null,
-      onboardingCompletedAt: FieldValue.serverTimestamp(),
-    });
-  });
-
-  revalidatePath("/profile");
-  redirect("/onboarding/safety");
-}
-
-export async function skipOnboarding() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/sign-in");
-
-  const userRef = db.doc(`users/${user.id}`);
-
-  if (!user.username) {
-    let created = false;
-    for (let attempt = 0; attempt < 5 && !created; attempt++) {
-      const candidate = `user${Math.floor(1000 + Math.random() * 9000)}`;
-      try {
-        await db.runTransaction(async (tx) => {
-          await reserveUsername(tx, user.id, candidate, null);
-          tx.update(userRef, { username: candidate, onboardingCompletedAt: FieldValue.serverTimestamp() });
-        });
-        created = true;
-      } catch {
-        // username collision, try another candidate
-      }
-    }
-    if (!created) throw new Error("Could not generate a username, please try again");
-  } else {
-    await userRef.update({ onboardingCompletedAt: FieldValue.serverTimestamp() });
-  }
-
-  redirect("/onboarding/safety");
-}
 
 export async function setUserLocation(lat: number, lng: number, label: string | null) {
   const user = await getCurrentUser();

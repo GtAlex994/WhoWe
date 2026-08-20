@@ -43,7 +43,7 @@ export default function VerifyPage() {
       });
       if (!res.ok) throw new Error("session exchange failed");
       const { needsOnboarding } = await res.json();
-      window.location.href = needsOnboarding ? "/onboarding-flow" : "/";
+      window.location.href = needsOnboarding ? "/onboarding" : "/";
     } catch {
       setStatus("error");
       setError("That link is invalid or has expired. Request a new one.");

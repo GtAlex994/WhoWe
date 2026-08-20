@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { getEvent, getEventAttendees, getEventRatings, getAttendeeStatus } from "@/lib/events";
-import { getUsersByIds } from "@/lib/users";
+import { getUsersByIds } from "@/lib/users-server";
 import { getCurrentUser } from "@/lib/session";
 import { joinEvent, leaveEvent, rateEvent } from "@/app/actions";
 import { getHostRatings } from "@/lib/ratings";
@@ -88,7 +88,16 @@ export default async function EventDetailPage({
         </FadeIn>
 
         <FadeIn delay={0.1} className="text-sm text-muted flex items-center gap-2 flex-wrap">
-          <span>Hosted by @{people[event.creatorId]?.username ?? "someone"}</span>
+          <span>
+            Hosted by{" "}
+            {people[event.creatorId]?.username ? (
+              <Link href={`/profile/${people[event.creatorId].username}`} className="text-primary underline hover:text-primary/80">
+                @{people[event.creatorId].username}
+              </Link>
+            ) : (
+              "someone"
+            )}
+          </span>
           {hostRating && <StarRating avg={hostRating.avg} count={hostRating.count} />}
         </FadeIn>
 

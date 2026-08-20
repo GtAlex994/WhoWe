@@ -1,12 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { ProfileEditor } from "@/components/ProfileEditor";
+import { GROUP_SIZES, PLANNING_STYLES, ACTIVITY_VIBES, PERSONALITIES } from "@/lib/social";
 import { SocialStyleForm } from "./social-style-form";
-
-const GROUP_SIZES = ["2–3 people", "4–6 people", "7–10 people", "10+ people", "No preference"];
-const PLANNING_STYLES = ["Spontaneous", "Few days ahead", "Well planned", "No preference"];
-const ACTIVITY_VIBES = ["Relaxed", "Social", "Active", "Adventurous", "No preference"];
-const PERSONALITIES = ["Introvert", "Somewhere in-between", "Extrovert", "No preference"];
 
 export default async function EditSocialStylePage() {
   const user = await getCurrentUser();
