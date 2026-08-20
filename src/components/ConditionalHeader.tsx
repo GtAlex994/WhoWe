@@ -1,20 +1,28 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { AutoHideHeader } from "@/components/AutoHideHeader";
 
 type ConditionalHeaderProps = {
   children: ReactNode;
 };
 
+function subscribeNoop() {
+  return () => {};
+}
+
+function useMounted() {
+  return useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+}
+
 export function ConditionalHeader({ children }: ConditionalHeaderProps) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return <AutoHideHeader>{children}</AutoHideHeader>;

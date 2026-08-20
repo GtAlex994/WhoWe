@@ -5,8 +5,8 @@
  * Requires FIREBASE_PROJECT_ID and FIREBASE_DATABASE_ID env vars
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Load environment variables
 const envPath = path.join(process.cwd(), '.env.local');

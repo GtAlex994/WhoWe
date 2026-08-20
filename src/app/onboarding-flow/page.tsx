@@ -138,7 +138,7 @@ export default function OnboardingFlowPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
-  const [data, setData] = useState<Partial<OnboardingData>>({
+  const [data, setData] = useState<Partial<OnboardingData>>(() => ({
     displayName: "",
     username: "",
     avatarStyle: "avataaars",
@@ -148,7 +148,7 @@ export default function OnboardingFlowPage() {
     activities: [],
     bio: "",
     maxDistance: 50,
-  });
+  }));
 
   const currentStep = STEPS[step];
   const progress = useMemo(() => calculateProgress(data), [data]);

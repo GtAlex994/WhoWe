@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { auth, db } from "@/lib/firebase-admin";
 import { sanitizeUsername, generateUserId } from "@/lib/users";
+import type { UserLanguage } from "@/lib/languages";
 
 async function generateUniqueUserId(): Promise<string> {
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
           ageRange: null,
           maxDistance: maxDistance,
           groupSize: null,
-          preferredLanguages: languages.map((l: any) => l.language),
+          preferredLanguages: languages.map((l: UserLanguage) => l.language),
           eventTypes: [],
         },
         onboardingCompletedAt: FieldValue.serverTimestamp(),

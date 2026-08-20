@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface ChipSelectorProps {
   items: string[];
@@ -11,10 +11,12 @@ interface ChipSelectorProps {
 
 export function ChipSelector({ items, selected, onChange, max }: ChipSelectorProps) {
   const [local, setLocal] = useState(selected);
+  const [prevSelected, setPrevSelected] = useState(selected);
 
-  useEffect(() => {
+  if (selected !== prevSelected) {
+    setPrevSelected(selected);
     setLocal(selected);
-  }, [selected]);
+  }
 
   const toggleItem = (item: string) => {
     let updated: string[];

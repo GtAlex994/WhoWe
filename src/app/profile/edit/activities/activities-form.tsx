@@ -42,7 +42,7 @@ export function ActivitiesForm({ activities, defaultActivities }: ActivitiesForm
       )}
 
       <div>
-        <p className="text-sm text-muted mb-4">Select activities that match what you'd actually want to do</p>
+        <p className="text-sm text-muted mb-4">Select activities that match what you&apos;d actually want to do</p>
         <ChipSelector items={activities} selected={selected} onChange={setSelected} />
         {selected.length === 0 && <p className="text-xs text-muted mt-3 italic">No activities selected yet</p>}
         {selected.length > 0 && <p className="text-xs text-muted mt-3">{selected.length} activities selected</p>}

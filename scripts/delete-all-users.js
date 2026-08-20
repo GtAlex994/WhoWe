@@ -5,10 +5,17 @@
  * Run with: node scripts/delete-all-users.js
  */
 
-const admin = require("firebase-admin");
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import path from "path";
+import admin from "firebase-admin";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Initialize Firebase Admin
-const serviceAccount = require("../firebase-service-account.json");
+const serviceAccount = JSON.parse(
+  readFileSync(path.join(__dirname, "../firebase-service-account.json"), "utf8"),
+);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

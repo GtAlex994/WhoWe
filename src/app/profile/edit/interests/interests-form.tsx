@@ -55,8 +55,8 @@ export function InterestsForm({ categories, defaultInterests, defaultDislikes }:
 
       {/* Things I'd rather avoid */}
       <div className="border-t-2 border-foreground pt-6">
-        <h2 className="text-lg font-semibold mb-2">👎 Things I'd rather avoid</h2>
-        <p className="text-sm text-muted mb-4">Optional: Let us know what you're not into</p>
+        <h2 className="text-lg font-semibold mb-2">👎 Things I&apos;d rather avoid</h2>
+        <p className="text-sm text-muted mb-4">Optional: Let us know what you&apos;re not into</p>
         <ChipSelector items={categories} selected={dislikes} onChange={setDislikes} />
         {dislikes.length === 0 && <p className="text-xs text-muted mt-3 italic">No dislikes selected yet</p>}
       </div>

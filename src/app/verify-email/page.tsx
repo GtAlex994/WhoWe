@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FadeIn } from "@/components/FadeIn";
@@ -12,14 +12,7 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
 
-  useEffect(() => {
-    // Check if email is already verified
-    checkEmailVerification();
-    const interval = setInterval(checkEmailVerification, 3000); // Check every 3 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  async function checkEmailVerification() {
+  const checkEmailVerification = useCallback(async () => {
     try {
       const res = await fetch("/api/auth/check-email-verified");
       const data = await res.json();
@@ -33,7 +26,16 @@ export default function VerifyEmailPage() {
     } catch (err) {
       console.error("Error checking email verification:", err);
     }
-  }
+  }, [router]);
+
+  useEffect(() => {
+    // Poll an external endpoint and sync its result into state; setState only
+    // runs after the async fetch resolves, not synchronously in the effect body.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    checkEmailVerification();
+    const interval = setInterval(checkEmailVerification, 3000); // Check every 3 seconds
+    return () => clearInterval(interval);
+  }, [checkEmailVerification]);
 
   async function resendVerificationEmail() {
     setResending(true);
@@ -62,13 +64,13 @@ export default function VerifyEmailPage() {
               <div>
                 <h1 className="text-4xl font-semibold tracking-tight">Check your email</h1>
                 <p className="text-muted mt-2">
-                  We've sent a verification link to your email address. Click it to confirm your account and access WhoWe.
+                  We&apos;ve sent a verification link to your email address. Click it to confirm your account and access WhoWe.
                 </p>
               </div>
 
               <div className="bg-surface border-2 border-foreground rounded-lg p-6">
                 <p className="text-sm text-muted mb-4">
-                  Didn't receive the email? Check your spam folder or request a new one:
+                  Didn&apos;t receive the email? Check your spam folder or request a new one:
                 </p>
                 <Button
                   variant="secondary"

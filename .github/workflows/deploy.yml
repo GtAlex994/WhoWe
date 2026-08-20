@@ -30,6 +30,19 @@ jobs:
       - name: Install functions dependencies
         run: cd functions && npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Verify required secrets are set
+        run: |
+          missing=()
+          [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ] && missing+=("FIREBASE_SERVICE_ACCOUNT")
+          [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ] && missing+=("FIREBASE_PROJECT_ID")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required repo secret(s): ${missing[*]}. Set them in Settings > Secrets and variables > Actions before deploying."
+            exit 1
+          fi
+
       - name: Build Next.js project
         run: npm run build
         env:

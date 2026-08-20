@@ -6,6 +6,7 @@ import { signOut } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { calculateProfileCompletion } from "@/lib/users";
+import type { UserLanguage } from "@/lib/languages";
 
 function formatDate(date: Date | null): string {
   if (!date) return "";
@@ -186,7 +187,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               </div>
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
-                <p className="text-sm text-muted mb-3">Tell us what you're into to improve your matches.</p>
+                <p className="text-sm text-muted mb-3">Tell us what you&apos;re into to improve your matches.</p>
                 <Link href="/profile/edit/interests" className="text-sm text-primary underline">
                   Add interests
                 </Link>
@@ -199,7 +200,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.12}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">⚡ I'm up for</h2>
+              <h2 className="text-lg font-semibold flex items-center gap-2">⚡ I&apos;m up for</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/activities" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -248,7 +249,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             {user.languages && Array.isArray(user.languages) && user.languages.length > 0 ? (
               <div className="space-y-2 divide-y-2 divide-foreground">
-                {user.languages.map((lang: any, idx: number) => (
+                {user.languages.map((lang: UserLanguage, idx: number) => (
                   <div key={`${lang.language}-${idx}`} className="flex items-center justify-between py-2">
                     <span className="text-sm">{lang.language}</span>
                     <span className="text-xs text-muted capitalize">{lang.proficiency}</span>
@@ -320,7 +321,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <FadeIn delay={0.18}>
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">🔎 What I'm looking for</h2>
+              <h2 className="text-lg font-semibold flex items-center gap-2">🔎 What I&apos;m looking for</h2>
               {isOwnProfile && (
                 <Link href="/profile/edit/goals" className="text-sm text-primary underline hover:text-primary/80">
                   Edit
@@ -338,7 +339,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               </div>
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center">
-                <p className="text-sm text-muted mb-3">Help others understand what you're looking for.</p>
+                <p className="text-sm text-muted mb-3">Help others understand what you&apos;re looking for.</p>
                 <Link href="/profile/edit/goals" className="text-sm text-primary underline">
                   Set goals
                 </Link>
