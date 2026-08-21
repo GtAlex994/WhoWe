@@ -1,5 +1,9 @@
 const EARTH_RADIUS_KM = 6371;
 
+// How close (in km) someone needs to be to an event's venue to check in.
+// Generous enough to absorb typical GPS inaccuracy, especially indoors.
+export const CHECK_IN_RADIUS_KM = 0.3;
+
 export function distanceKm(
   a: { lat: number; lng: number },
   b: { lat: number; lng: number },

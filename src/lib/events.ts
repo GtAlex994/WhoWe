@@ -1,7 +1,7 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import { pickWildCandidates } from "@/lib/wildMatch";
-import { distanceKm } from "@/lib/geo";
+import { distanceKm, CHECK_IN_RADIUS_KM } from "@/lib/geo";
 import { getBlockedUserIds } from "@/lib/moderation";
 
 export type EventDTO = {
@@ -23,9 +23,12 @@ export type EventDTO = {
   targetHeadcount: number | null;
 };
 
+export type CheckInStatus = "checked-in" | "left";
+
 export type AttendeeDTO = {
   userId: string;
   joinedAt: Date;
+  checkInStatus: CheckInStatus | null;
 };
 
 export type RatingDTO = {
@@ -129,6 +132,7 @@ export async function getEventAttendees(eventId: string): Promise<AttendeeDTO[]>
     .map((d) => ({
       userId: d.data().userId,
       joinedAt: d.data().joinedAt.toDate(),
+      checkInStatus: (d.data().checkInStatus as CheckInStatus | undefined) ?? null,
     }));
 }
 
@@ -353,6 +357,56 @@ export async function leaveEvent(eventId: string, userId: string) {
   if (didLeave) {
     await inviteReplacementIfNeeded(eventRef);
   }
+}
+
+/**
+ * Checks a joined attendee in, but only if their submitted coordinates are
+ * within CHECK_IN_RADIUS_KM of the event's venue — verified server-side so
+ * the "I'm here" status other attendees see actually means something. The
+ * one-time location point is stored on the attendee doc only (never exposed
+ * to other users) as a "last known location" — not continuously tracked.
+ */
+export async function checkIntoEvent(
+  eventId: string,
+  userId: string,
+  lat: number,
+  lng: number,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const eventRef = db.doc(`events/${eventId}`);
+  const attendeeRef = eventRef.collection("attendees").doc(userId);
+
+  const [eventSnap, attendeeSnap] = await Promise.all([eventRef.get(), attendeeRef.get()]);
+  if (!eventSnap.exists) return { ok: false, error: "Event not found." };
+  if (!attendeeSnap.exists || attendeeSnap.data()!.status !== "joined") {
+    return { ok: false, error: "Join this event before checking in." };
+  }
+
+  const event = eventSnap.data()!;
+  if (event.latitude == null || event.longitude == null) {
+    return { ok: false, error: "This event doesn't have a venue location set, so check-in isn't available." };
+  }
+
+  const distance = distanceKm({ lat, lng }, { lat: event.latitude, lng: event.longitude });
+  if (distance > CHECK_IN_RADIUS_KM) {
+    return { ok: false, error: "You need to be at the venue to check in." };
+  }
+
+  await attendeeRef.update({
+    checkInStatus: "checked-in",
+    checkedInAt: FieldValue.serverTimestamp(),
+    checkedOutAt: null,
+    lastKnownLocation: { lat, lng, capturedAt: FieldValue.serverTimestamp() },
+  });
+
+  return { ok: true };
+}
+
+export async function checkOutOfEvent(eventId: string, userId: string): Promise<void> {
+  const attendeeRef = db.doc(`events/${eventId}/attendees/${userId}`);
+  await attendeeRef.update({
+    checkInStatus: "left",
+    checkedOutAt: FieldValue.serverTimestamp(),
+  });
 }
 
 export async function acceptWildInvite(eventId: string, userId: string) {

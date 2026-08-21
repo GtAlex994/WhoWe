@@ -12,6 +12,7 @@ import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
 import { StarRating } from "@/components/StarRating";
 import { EventRatingForm } from "@/components/EventRatingForm";
+import { EventCheckIn } from "@/components/EventCheckIn";
 import { distanceKm, formatDistance } from "@/lib/geo";
 
 function formatWhen(date: Date) {
@@ -39,7 +40,8 @@ export default async function EventDetailPage({
   const people = await getUsersByIds(peopleIds);
 
   const currentUser = await getCurrentUser();
-  const isAttending = currentUser ? attendees.some((a) => a.userId === currentUser.id) : false;
+  const myAttendance = currentUser ? attendees.find((a) => a.userId === currentUser.id) : undefined;
+  const isAttending = myAttendance != null;
   const isCreator = currentUser?.id === event.creatorId;
   const hasHappened = event.startsAt <= new Date();
 
@@ -178,8 +180,20 @@ export default async function EventDetailPage({
         )}
       </div>
 
-      <FadeIn delay={0.1}>
-        <div className="bg-surface border-2 border-foreground rounded-lg p-5 shadow-[3px_3px_0_0_var(--foreground)] lg:sticky lg:top-24">
+      <div className="flex flex-col gap-4 lg:sticky lg:top-24">
+        {isAttending && (
+          <FadeIn delay={0.08}>
+            <EventCheckIn
+              eventId={event.id}
+              checkInStatus={myAttendance?.checkInStatus ?? null}
+              venueLat={event.latitude}
+              venueLng={event.longitude}
+            />
+          </FadeIn>
+        )}
+
+        <FadeIn delay={0.1}>
+        <div className="bg-surface border-2 border-foreground rounded-lg p-5 shadow-[3px_3px_0_0_var(--foreground)]">
           <h2 className="text-sm font-medium mb-3 text-muted uppercase tracking-wide">
             {event.isWild
               ? `${event.attendeeCount} of ${event.targetHeadcount} going`
@@ -191,13 +205,19 @@ export default async function EventDetailPage({
                 key={a.userId}
                 className="border border-border rounded-md px-3 py-2.5"
               >
-                <div className="font-medium">{people[a.userId]?.name ?? "someone"}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-medium">{people[a.userId]?.name ?? "someone"}</div>
+                  {a.checkInStatus === "checked-in" && (
+                    <span className="text-xs text-accent font-medium shrink-0">✓ Checked in</span>
+                  )}
+                </div>
                 {people[a.userId]?.bio && <div className="text-sm text-muted">{people[a.userId]?.bio}</div>}
               </StaggerItem>
             ))}
           </StaggerList>
         </div>
-      </FadeIn>
+        </FadeIn>
+      </div>
     </div>
   );
 }

@@ -16,6 +16,8 @@ import {
   rateEvent as rateEventDb,
   acceptWildInvite as acceptWildInviteDb,
   declineWildInvite as declineWildInviteDb,
+  checkIntoEvent as checkIntoEventDb,
+  checkOutOfEvent as checkOutOfEventDb,
 } from "@/lib/events";
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
@@ -124,6 +126,29 @@ export async function leaveEvent(eventId: string) {
   if (!user) redirect("/sign-in");
 
   await leaveEventDb(eventId, user.id);
+
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function checkIntoEvent(eventId: string, lat: number, lng: number) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error("Invalid coordinates");
+  }
+
+  const result = await checkIntoEventDb(eventId, user.id, lat, lng);
+  if (!result.ok) throw new Error(result.error);
+
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function checkOutOfEvent(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await checkOutOfEventDb(eventId, user.id);
 
   revalidatePath(`/events/${eventId}`);
 }

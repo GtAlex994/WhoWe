@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-export function AutoHideHeader({ children }: { children: ReactNode }) {
+export function AutoHideHeader({ children, className = "" }: { children: ReactNode; className?: string }) {
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
 
@@ -32,7 +32,7 @@ export function AutoHideHeader({ children }: { children: ReactNode }) {
     <header
       className={`sticky top-0 z-20 border-b-2 border-foreground bg-background/95 backdrop-blur-sm transition-transform duration-300 ease-out ${
         hidden ? "-translate-y-full" : "translate-y-0"
-      }`}
+      } ${className}`}
     >
       {children}
     </header>
