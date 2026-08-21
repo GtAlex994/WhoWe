@@ -20,7 +20,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-semibold text-base mb-2">Your name and username</h2>
           <p className="text-muted">
-            Your display name is private and only used for account identification — other members see your username
+            Your full name is private and only used for account identification — other members see your username
             instead. Your username is public and cannot be changed once set.
           </p>
         </section>

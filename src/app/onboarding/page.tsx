@@ -32,7 +32,7 @@ export default function OnboardingPage() {
   const progressPercent = calculateProfileCompletion({
     name: state.displayName,
     username: state.username,
-    avatar: { style: state.avatarStyle, seed: state.avatarSeed },
+    avatar: { style: "avataaars", ...state.avatar },
     locationLabel: state.locationLabel || null,
     interests: state.interests,
     activities: state.activities,

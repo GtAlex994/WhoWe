@@ -2,6 +2,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import { pickWildCandidates } from "@/lib/wildMatch";
 import { distanceKm } from "@/lib/geo";
+import { getBlockedUserIds } from "@/lib/moderation";
 
 export type EventDTO = {
   id: string;
@@ -248,10 +249,11 @@ export async function createWildEventDoc(data: {
     });
   });
 
+  const blockedIds = await getBlockedUserIds(data.creatorId);
   const candidateIds = await pickWildCandidates(
     data.latitude,
     data.longitude,
-    new Set([data.creatorId]),
+    new Set([data.creatorId, ...blockedIds]),
     data.targetHeadcount - 1,
   );
 
@@ -288,6 +290,8 @@ async function inviteReplacementIfNeeded(eventRef: FirebaseFirestore.DocumentRef
 
   const excludeIds = new Set(attendeesSnap.docs.map((d) => d.id));
   excludeIds.add(event.creatorId);
+  const blockedIds = await getBlockedUserIds(event.creatorId);
+  blockedIds.forEach((id) => excludeIds.add(id));
 
   const [candidateId] = await pickWildCandidates(event.latitude, event.longitude, excludeIds, 1);
   if (!candidateId) return;

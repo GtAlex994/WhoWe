@@ -1,4 +1,4 @@
-import type { AvatarStyle } from "@/lib/avatars";
+import { randomAvataaarsFeatures, type AvatarGender, type AvataaarsFeatures } from "@/lib/avatars";
 import type { UserLanguage } from "@/lib/languages";
 
 export type UsernameStatus = "idle" | "checking" | "available" | "taken" | "error";
@@ -7,8 +7,8 @@ export type OnboardingState = {
   displayName: string;
   username: string;
   usernameStatus: UsernameStatus;
-  avatarStyle: AvatarStyle;
-  avatarSeed: string;
+  avatar: AvataaarsFeatures;
+  gender: AvatarGender | null;
   bio: string;
 
   locationLabel: string;
@@ -40,8 +40,8 @@ export const initialOnboardingState: OnboardingState = {
   displayName: "",
   username: "",
   usernameStatus: "idle",
-  avatarStyle: "avataaars",
-  avatarSeed: Math.random().toString(36).substring(7),
+  avatar: randomAvataaarsFeatures("male"),
+  gender: null,
   bio: "",
 
   locationLabel: "",

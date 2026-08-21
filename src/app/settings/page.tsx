@@ -114,10 +114,12 @@ export default async function SettingsPage() {
             ))}
           </div>
           <p className="text-xs text-muted mt-3">
-            WhoWe is an early prototype. In-app reporting, blocking, and identity
-            verification aren&apos;t live yet. Treat every meetup with the same caution
-            you&apos;d use meeting anyone new online.
+            WhoWe is an early prototype. Identity verification isn&apos;t live yet. Treat
+            every meetup with the same caution you&apos;d use meeting anyone new online.
           </p>
+          <Link href="/profile/blocked" className="text-sm text-primary hover:underline mt-3 inline-block">
+            Manage blocked members →
+          </Link>
         </FadeIn>
 
         <FadeIn delay={0.22} className="border-t-2 border-border pt-6">

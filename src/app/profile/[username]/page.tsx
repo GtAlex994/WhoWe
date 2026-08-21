@@ -4,8 +4,12 @@ import { getCurrentUser } from "@/lib/session";
 import { getUserByUsername } from "@/lib/users-server";
 import { toPublicProfile } from "@/lib/users";
 import { FadeIn } from "@/components/FadeIn";
-import { getAvatarUrl, type AvatarStyle } from "@/lib/avatars";
+import { resolveAvatarSrc } from "@/lib/avatars";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
+import { ProfileActions } from "@/components/ProfileActions";
+import { getBlockStatus } from "@/lib/moderation";
+import { unblockUser } from "@/app/moderation-actions";
+import { Button } from "@/components/Button";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
@@ -32,6 +36,24 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
   const targetUser = await getUserByUsername(username);
   if (!targetUser) notFound();
 
+  const blockStatus = await getBlockStatus(currentUser.id, targetUser.id);
+  if (blockStatus === "blockedByTarget") notFound();
+
+  if (blockStatus === "blockedByViewer") {
+    return (
+      <div className="w-full max-w-md mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">You&apos;ve blocked this member</h1>
+        <p className="text-muted mt-2">Their profile, events, and messages are hidden from you.</p>
+        <form action={unblockUser} className="mt-6 inline-block">
+          <input type="hidden" name="targetUsername" value={targetUser.username ?? username} />
+          <Button type="submit" variant="secondary">
+            Unblock
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
   const profile = toPublicProfile(targetUser);
 
   return (
@@ -49,7 +71,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
                   />
                 ) : profile.avatar ? (
                   <Image
-                    src={getAvatarUrl(profile.avatar.seed, profile.avatar.style as Exclude<AvatarStyle, "color-initials">)}
+                    src={resolveAvatarSrc(profile.avatar, profile.gender)}
                     alt=""
                     width={96}
                     height={96}
@@ -64,7 +86,10 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
               </div>
 
               <div className="flex-1">
-                <h1 className="text-3xl font-semibold tracking-tight">@{profile.username}</h1>
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <h1 className="text-3xl font-semibold tracking-tight">@{profile.username}</h1>
+                  <ProfileActions targetUsername={profile.username ?? username} />
+                </div>
 
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
                   {profile.locationLabel && <span>📍 {profile.locationLabel}</span>}

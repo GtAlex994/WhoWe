@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { getAvatarUrl } from "@/lib/avatars";
-import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
+import { buildAvataaarsUrl } from "@/lib/avatars";
 import { applyLocationPrecision, calculateProfileCompletion } from "@/lib/users";
 import type { OnboardingState, OnboardingAction } from "../onboarding-reducer";
 import type { StepErrors } from "../validation";
@@ -38,7 +37,7 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
   const completion = calculateProfileCompletion({
     name: state.displayName,
     username: state.username,
-    avatar: { style: state.avatarStyle, seed: state.avatarSeed },
+    avatar: { style: "avataaars", ...state.avatar },
     locationLabel: state.locationLabel || null,
     interests: state.interests,
     activities: state.activities,
@@ -65,7 +64,7 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
           ))}
         </div>
         <p className="text-xs text-muted mt-3">
-          WhoWe is an early prototype. In-app reporting, blocking, and identity verification aren&apos;t live yet.{" "}
+          WhoWe is an early prototype. Identity verification isn&apos;t live yet.{" "}
           <Link href="/community-guidelines" className="underline">
             Read our full community guidelines
           </Link>{" "}
@@ -78,18 +77,14 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
         <h2 className="font-display font-semibold text-lg mb-3">Here&apos;s your profile</h2>
         <div className="border-2 border-foreground rounded-lg p-4 space-y-4 shadow-[3px_3px_0_0_var(--foreground)]">
           <div className="flex items-center gap-3">
-            {state.avatarStyle === "color-initials" ? (
-              <ColorInitialsAvatar initials={state.displayName.charAt(0).toUpperCase() || "?"} color={state.avatarSeed} className="h-14 w-14 text-lg" />
-            ) : (
-              <Image
-                src={getAvatarUrl(state.avatarSeed, state.avatarStyle)}
-                alt=""
-                width={56}
-                height={56}
-                unoptimized
-                className="h-14 w-14 rounded-full border-2 border-foreground"
-              />
-            )}
+            <Image
+              src={buildAvataaarsUrl(state.avatar)}
+              alt=""
+              width={56}
+              height={56}
+              unoptimized
+              className="h-14 w-14 rounded-full border-2 border-foreground"
+            />
             <div>
               <p className="font-semibold">@{state.username || "username"}</p>
               {publicLocation && <p className="text-xs text-muted">📍 {publicLocation}</p>}

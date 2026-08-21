@@ -1,4 +1,5 @@
 import type { UserLanguage } from "@/lib/languages";
+import type { AvatarGender } from "@/lib/avatars";
 
 export type UserDTO = {
   id: string;
@@ -9,8 +10,17 @@ export type UserDTO = {
   avatar: {
     style: string;
     seed: string;
+    // Present for accounts created after the avatar feature-picker shipped;
+    // absent for older accounts still on the legacy random-seed avatar.
+    top?: string;
+    hairColor?: string;
+    skinColor?: string;
+    facialHair?: string;
+    accessories?: string;
+    clothes?: string;
+    clothesColor?: string;
   } | null;
-  gender: string | null;
+  gender: AvatarGender | null;
   createdAt: Date;
   onboardingCompletedAt: Date | null;
   notifyEmail: boolean;
@@ -223,6 +233,7 @@ export type PublicProfileDTO = {
   username: string | null;
   userId: string | null;
   avatar: UserDTO["avatar"];
+  gender: UserDTO["gender"];
   bio: string | null;
   locationLabel: string | null;
   interests: string[];
@@ -251,6 +262,7 @@ export function toPublicProfile(user: UserDTO): PublicProfileDTO {
     username: user.username,
     userId: user.userId,
     avatar: user.avatar,
+    gender: user.gender,
     bio: user.bio,
     locationLabel: applyLocationPrecision(user.locationLabel, user.locationPrecision),
     interests: user.interests,

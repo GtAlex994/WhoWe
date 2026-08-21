@@ -10,6 +10,8 @@ interface ChipSelectorProps {
   maxIsSoft?: boolean;
   /** Items rendered disabled (e.g. already chosen in a mutually-exclusive list elsewhere). */
   disabledItems?: string[];
+  /** Selecting this item clears all others; selecting any other item deselects it. */
+  exclusiveItem?: string;
   ariaLabel?: string;
 }
 
@@ -21,6 +23,7 @@ export function ChipSelector({
   max,
   maxIsSoft = false,
   disabledItems = [],
+  exclusiveItem,
   ariaLabel,
 }: ChipSelectorProps) {
   const toggleItem = (item: string) => {
@@ -29,9 +32,11 @@ export function ChipSelector({
     let updated: string[];
     if (selected.includes(item)) {
       updated = selected.filter((i) => i !== item);
+    } else if (item === exclusiveItem) {
+      updated = [item];
     } else {
       if (max && !maxIsSoft && selected.length >= max) return;
-      updated = [...selected, item];
+      updated = [...selected.filter((i) => i !== exclusiveItem), item];
     }
     onChange(updated);
   };

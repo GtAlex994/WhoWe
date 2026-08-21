@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
     const {
       displayName,
       username,
-      avatarStyle,
-      avatarSeed,
+      avatar,
+      gender,
       bio,
       locationLabel,
       locationLat,
@@ -50,7 +50,17 @@ export async function POST(request: NextRequest) {
       consent,
     } = data;
 
-    if (!displayName?.trim() || !username || !avatarStyle || !avatarSeed) {
+    if (
+      !displayName?.trim() ||
+      !username ||
+      !avatar?.seed ||
+      !avatar?.top ||
+      !avatar?.hairColor ||
+      !avatar?.skinColor ||
+      !avatar?.clothes ||
+      !avatar?.clothesColor ||
+      (gender !== "male" && gender !== "female")
+    ) {
       return NextResponse.json({ error: "Missing required profile fields." }, { status: 400 });
     }
     if (!locationLabel || typeof locationLat !== "number" || typeof locationLng !== "number") {
@@ -102,7 +112,18 @@ export async function POST(request: NextRequest) {
         name: displayName.trim(),
         username: sanitized,
         userId,
-        avatar: { style: avatarStyle, seed: avatarSeed },
+        avatar: {
+          style: "avataaars",
+          seed: avatar.seed,
+          top: avatar.top,
+          hairColor: avatar.hairColor,
+          skinColor: avatar.skinColor,
+          facialHair: avatar.facialHair || "none",
+          accessories: avatar.accessories || "none",
+          clothes: avatar.clothes,
+          clothesColor: avatar.clothesColor,
+        },
+        gender,
         bio: bio?.trim() || "",
         locationLabel,
         locationLat,

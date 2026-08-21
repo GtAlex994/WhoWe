@@ -8,7 +8,7 @@ import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { calculateProfileCompletion, getMissingCompletionItems } from "@/lib/users";
 import type { UserLanguage } from "@/lib/languages";
-import { getAvatarUrl, type AvatarStyle } from "@/lib/avatars";
+import { resolveAvatarSrc } from "@/lib/avatars";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
 
 function formatDate(date: Date | null): string {
@@ -60,7 +60,7 @@ export default async function ProfilePage() {
                   />
                 ) : user.avatar ? (
                   <Image
-                    src={getAvatarUrl(user.avatar.seed, user.avatar.style as Exclude<AvatarStyle, "color-initials">)}
+                    src={resolveAvatarSrc(user.avatar, user.gender)}
                     alt=""
                     width={96}
                     height={96}
@@ -72,6 +72,9 @@ export default async function ProfilePage() {
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
+                <Link href="/profile/edit/avatar" className="block text-center text-xs text-primary underline hover:text-primary/80 mt-1.5">
+                  Edit avatar
+                </Link>
               </div>
 
               <div className="flex-1">

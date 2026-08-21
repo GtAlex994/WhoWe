@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateSocialStyle } from "@/app/profile-actions";
 import { Button } from "@/components/Button";
 import { ChipSelector } from "@/components/ChipSelector";
+import { SingleChoice } from "@/components/SingleChoice";
 import type { UserDTO } from "@/lib/users";
 
 interface SocialStyleFormProps {
@@ -58,74 +59,44 @@ export function SocialStyleForm({
       )}
 
       {/* Group Size */}
-      <div>
-        <label htmlFor="groupSize" className="text-sm font-medium block mb-2">
-          Group Size
-        </label>
-        <p className="text-xs text-muted mb-3">How many people do you prefer at events?</p>
-        <select
-          id="groupSize"
-          value={groupSize}
-          onChange={(e) => setGroupSize(e.target.value)}
-          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-        >
-          <option value="">Select...</option>
-          {groupSizes.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SingleChoice
+        label="Group Size"
+        hint="How many people do you prefer at events?"
+        options={groupSizes}
+        value={groupSize}
+        onChange={setGroupSize}
+      />
 
       {/* Planning Style */}
-      <div>
-        <label htmlFor="planning" className="text-sm font-medium block mb-2">
-          Planning Style
-        </label>
-        <p className="text-xs text-muted mb-3">How much notice do you prefer for events?</p>
-        <select
-          id="planning"
-          value={planning}
-          onChange={(e) => setPlanning(e.target.value)}
-          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-        >
-          <option value="">Select...</option>
-          {planningStyles.map((style) => (
-            <option key={style} value={style}>
-              {style}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SingleChoice
+        label="Planning Style"
+        hint="How much notice do you prefer for events?"
+        options={planningStyles}
+        value={planning}
+        onChange={setPlanning}
+      />
 
       {/* Activity Vibe */}
       <div>
         <p className="text-sm font-medium block mb-2">Activity vibe</p>
         <p className="text-xs text-muted mb-3">What kind of energy are you looking for? Pick as many as apply.</p>
-        <ChipSelector items={activityVibes} selected={pace} onChange={setPace} ariaLabel="Activity vibe" />
+        <ChipSelector
+          items={activityVibes}
+          selected={pace}
+          onChange={setPace}
+          exclusiveItem="No preference"
+          ariaLabel="Activity vibe"
+        />
       </div>
 
       {/* Personality */}
-      <div>
-        <label htmlFor="personality" className="text-sm font-medium block mb-2">
-          Personality
-        </label>
-        <p className="text-xs text-muted mb-3">How would you describe yourself socially?</p>
-        <select
-          id="personality"
-          value={personality}
-          onChange={(e) => setPersonality(e.target.value)}
-          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-        >
-          <option value="">Select...</option>
-          {personalities.map((pers) => (
-            <option key={pers} value={pers}>
-              {pers}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SingleChoice
+        label="Personality"
+        hint="How would you describe yourself socially?"
+        options={personalities}
+        value={personality}
+        onChange={setPersonality}
+      />
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3 pt-4 border-t-2 border-foreground">

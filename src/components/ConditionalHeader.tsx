@@ -28,9 +28,9 @@ export function ConditionalHeader({ children }: ConditionalHeaderProps) {
     return <AutoHideHeader>{children}</AutoHideHeader>;
   }
 
-  const isOnboarding = pathname?.startsWith("/onboarding");
+  const isHome = pathname === "/";
 
-  if (isOnboarding) {
+  if (!isHome) {
     return null;
   }
 

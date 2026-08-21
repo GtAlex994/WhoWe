@@ -10,7 +10,8 @@ export function validateStep(stepId: string, state: OnboardingState): { valid: b
       break;
 
     case "profile":
-      if (!state.displayName.trim()) errors.displayName = "Enter a display name.";
+      if (!state.gender) errors.gender = "Select your gender.";
+      if (!state.displayName.trim()) errors.displayName = "Enter your full name.";
       if (state.username.trim().length < 3) {
         errors.username = "Username must be at least 3 characters.";
       } else if (state.usernameStatus === "taken") {

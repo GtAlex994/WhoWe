@@ -27,6 +27,45 @@ export async function updateBasicProfile(formData: FormData) {
   redirect("/profile");
 }
 
+export async function updateAvatar(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const gender = formData.get("gender");
+  const seed = formData.get("seed");
+  const top = formData.get("top");
+  const hairColor = formData.get("hairColor");
+  const skinColor = formData.get("skinColor");
+  const facialHair = formData.get("facialHair");
+  const accessories = formData.get("accessories");
+  const clothes = formData.get("clothes");
+  const clothesColor = formData.get("clothesColor");
+
+  if (gender !== "male" && gender !== "female") throw new Error("Select a gender.");
+  if (!seed || !top || !hairColor || !skinColor || !clothes || !clothesColor) {
+    throw new Error("Missing avatar fields.");
+  }
+
+  const userRef = db.doc(`users/${user.id}`);
+  await userRef.update({
+    gender,
+    avatar: {
+      style: "avataaars",
+      seed: String(seed),
+      top: String(top),
+      hairColor: String(hairColor),
+      skinColor: String(skinColor),
+      facialHair: facialHair ? String(facialHair) : "none",
+      accessories: accessories ? String(accessories) : "none",
+      clothes: String(clothes),
+      clothesColor: String(clothesColor),
+    },
+  });
+
+  revalidatePath("/profile");
+  redirect("/profile");
+}
+
 export async function updateInterests(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");

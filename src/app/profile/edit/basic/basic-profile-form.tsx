@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { updateBasicProfile } from "@/app/profile-actions";
 import { Button } from "@/components/Button";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
-import { getAvatarUrl, type AvatarStyle } from "@/lib/avatars";
+import { resolveAvatarSrc } from "@/lib/avatars";
 import type { UserDTO } from "@/lib/users";
 
 export function BasicProfileForm({ user }: { user: UserDTO }) {
@@ -19,7 +20,7 @@ export function BasicProfileForm({ user }: { user: UserDTO }) {
           <ColorInitialsAvatar initials={user.name.charAt(0).toUpperCase()} color={user.avatar.seed} className="h-20 w-20 text-2xl" />
         ) : user.avatar ? (
           <Image
-            src={getAvatarUrl(user.avatar.seed, user.avatar.style as Exclude<AvatarStyle, "color-initials">)}
+            src={resolveAvatarSrc(user.avatar, user.gender)}
             alt=""
             width={80}
             height={80}
@@ -31,15 +32,15 @@ export function BasicProfileForm({ user }: { user: UserDTO }) {
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <p className="text-xs text-muted mt-2">
-          Avatar is chosen during onboarding.
-        </p>
+        <Link href="/profile/edit/avatar" className="block text-xs text-primary underline hover:text-primary/80 mt-2">
+          Edit avatar
+        </Link>
       </div>
 
       {/* Name */}
       <div>
         <label htmlFor="name" className="text-sm font-medium block mb-2">
-          Display Name
+          Full name
         </label>
         <input
           id="name"
@@ -49,7 +50,7 @@ export function BasicProfileForm({ user }: { user: UserDTO }) {
           defaultValue={user.name}
           maxLength={100}
           className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-          placeholder="Your display name"
+          placeholder="Your full name"
         />
         <p className="text-xs text-muted mt-1">
           Private — only you will see this. Other members will know you by your username.
