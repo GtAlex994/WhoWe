@@ -169,7 +169,15 @@ export default async function EventDetailPage({
               {ratings.map((r) => (
                 <StaggerItem key={r.raterId} className="border border-border rounded-md px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-medium">{people[r.raterId]?.name ?? "someone"}</span>
+                    <span className="font-medium">
+                      {people[r.raterId]?.username ? (
+                        <Link href={`/profile/${people[r.raterId].username}`} className="text-primary underline hover:text-primary/80">
+                          @{people[r.raterId].username}
+                        </Link>
+                      ) : (
+                        "someone"
+                      )}
+                    </span>
                     <StarRating avg={r.score} count={1} hideCount />
                   </div>
                   {r.comment && <p className="text-sm text-muted mt-1">{r.comment}</p>}
@@ -206,7 +214,15 @@ export default async function EventDetailPage({
                 className="border border-border rounded-md px-3 py-2.5"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="font-medium">{people[a.userId]?.name ?? "someone"}</div>
+                  <div className="font-medium">
+                    {people[a.userId]?.username ? (
+                      <Link href={`/profile/${people[a.userId].username}`} className="text-primary underline hover:text-primary/80">
+                        @{people[a.userId].username}
+                      </Link>
+                    ) : (
+                      "someone"
+                    )}
+                  </div>
                   {a.checkInStatus === "checked-in" && (
                     <span className="text-xs text-accent font-medium shrink-0">✓ Checked in</span>
                   )}

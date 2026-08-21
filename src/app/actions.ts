@@ -251,7 +251,6 @@ export async function sendChatMessage(eventId: string, content: string) {
 
   await db.collection(`events/${eventId}/messages`).add({
     senderId: user.id,
-    senderName: user.name,
     content: trimmed,
     createdAt: FieldValue.serverTimestamp(),
   });
@@ -285,7 +284,6 @@ export async function createPoll(eventId: string, question: string, options: str
 
   await db.collection(`events/${eventId}/messages`).add({
     senderId: user.id,
-    senderName: user.name,
     content: null,
     createdAt: FieldValue.serverTimestamp(),
     poll: {

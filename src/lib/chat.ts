@@ -35,9 +35,11 @@ export async function getLastMessagePreview(eventId: string): Promise<MessagePre
   if (snap.empty) return null;
 
   const data = snap.docs[0].data();
+  const senders = await getUsersByIds([data.senderId]);
+  const sender = senders[data.senderId];
   return {
     content: data.content ?? null,
-    senderName: data.senderName,
+    senderName: sender?.username ? `@${sender.username}` : "someone",
     createdAt: data.createdAt.toDate(),
     isPoll: !!data.poll,
   };
@@ -85,7 +87,7 @@ export async function getChatMessages(eventId: string, currentUserId: string): P
       id: d.id,
       content: data.content ?? null,
       createdAt: data.createdAt.toDate().toISOString(),
-      sender: { id: data.senderId, name: senders[data.senderId]?.name ?? data.senderName },
+      sender: { id: data.senderId, name: senders[data.senderId]?.username ? `@${senders[data.senderId].username}` : "someone" },
       poll: poll
         ? {
             id: d.id,
