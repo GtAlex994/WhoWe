@@ -1,7 +1,6 @@
 "use client";
 
 import { useReducer, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import { FadeIn } from "@/components/FadeIn";
@@ -19,7 +18,6 @@ import { SocialGoalsStep } from "./steps/SocialGoalsStep";
 import { SafetyPreviewStep } from "./steps/SafetyPreviewStep";
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [state, dispatch] = useReducer(onboardingReducer, initialOnboardingState);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,18 +52,6 @@ export default function OnboardingPage() {
 
   function handleBack() {
     if (stepIndex > 0) setStepIndex(stepIndex - 1);
-  }
-
-  async function handleSkip() {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("/api/auth/onboarding/skip", { method: "POST" });
-      if (!res.ok) throw new Error();
-      router.push("/");
-    } catch {
-      setIsSubmitting(false);
-      setSubmitError("Couldn't skip right now. Please try again.");
-    }
   }
 
   async function handleSubmit() {
@@ -144,8 +130,6 @@ export default function OnboardingPage() {
       canContinue={stepValidity.valid && !isSubmitting}
       isSubmitting={isSubmitting}
       continueLabel={isLastStep ? "Create my profile" : step.id === "welcome" ? "Get started" : "Continue"}
-      showSkip={step.id === "welcome"}
-      onSkip={handleSkip}
     >
       {submitError && (
         <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-md text-sm text-red-700">{submitError}</div>

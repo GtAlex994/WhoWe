@@ -16,8 +16,6 @@ type OnboardingShellProps = {
   canContinue: boolean;
   isSubmitting?: boolean;
   continueLabel?: string;
-  showSkip?: boolean;
-  onSkip?: () => void;
   children: ReactNode;
 };
 
@@ -32,8 +30,6 @@ export function OnboardingShell({
   canContinue,
   isSubmitting = false,
   continueLabel = "Continue",
-  showSkip = false,
-  onSkip,
   children,
 }: OnboardingShellProps) {
   const totalSteps = STEPS.length;
@@ -91,11 +87,6 @@ export function OnboardingShell({
             ← Back
           </Button>
           <div className="flex gap-3">
-            {showSkip && (
-              <Button variant="secondary" onClick={onSkip} disabled={isSubmitting}>
-                Skip
-              </Button>
-            )}
             <Button
               variant="primary"
               onClick={onContinue}
