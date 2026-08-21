@@ -1,6 +1,7 @@
 import { db } from "@/lib/firebase-admin";
 import { getUsersByIds } from "@/lib/users-server";
 import { REACTION_EMOJI, type ReactionSummary } from "@/lib/reactions";
+import { getUserAttendances } from "@/lib/events";
 
 export type ChatMessageDTO = {
   id: string;
@@ -40,6 +41,22 @@ export async function getLastMessagePreview(eventId: string): Promise<MessagePre
     createdAt: data.createdAt.toDate(),
     isPoll: !!data.poll,
   };
+}
+
+/** Event IDs (among the user's joined events) with a message newer than they've read. */
+export async function getUnreadEventIds(userId: string): Promise<Set<string>> {
+  const attendances = (await getUserAttendances(userId)).filter((a) => a.status === "joined");
+
+  const previews = await Promise.all(attendances.map((a) => getLastMessagePreview(a.eventId)));
+
+  const unread = new Set<string>();
+  attendances.forEach((a, i) => {
+    const preview = previews[i];
+    if (preview && (!a.lastReadAt || preview.createdAt > a.lastReadAt)) {
+      unread.add(a.eventId);
+    }
+  });
+  return unread;
 }
 
 export async function isEventAttendee(eventId: string, userId: string) {

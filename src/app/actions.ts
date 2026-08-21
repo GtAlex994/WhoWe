@@ -18,6 +18,7 @@ import {
   declineWildInvite as declineWildInviteDb,
   checkIntoEvent as checkIntoEventDb,
   checkOutOfEvent as checkOutOfEventDb,
+  markChatRead as markChatReadDb,
 } from "@/lib/events";
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
@@ -254,8 +255,18 @@ export async function sendChatMessage(eventId: string, content: string) {
     content: trimmed,
     createdAt: FieldValue.serverTimestamp(),
   });
+  await markChatReadDb(eventId, user.id);
 
   revalidatePath(`/chats/${eventId}`);
+  revalidatePath("/chats");
+}
+
+export async function markChatRead(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await markChatReadDb(eventId, user.id);
+
   revalidatePath("/chats");
 }
 

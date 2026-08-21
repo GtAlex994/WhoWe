@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getEvent } from "@/lib/events";
+import { getEvent, markChatRead } from "@/lib/events";
 import { getChatMessages, isEventAttendee } from "@/lib/chat";
 import { getCurrentUser } from "@/lib/session";
 import { EventChat } from "@/components/EventChat";
@@ -24,6 +24,7 @@ export default async function EventChatPage({
   if (!allowed) redirect(`/events/${id}`);
 
   const initialMessages = await getChatMessages(id, currentUser.id);
+  await markChatRead(id, currentUser.id);
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col">

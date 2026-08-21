@@ -5,6 +5,7 @@ import { MotionConfig } from "motion/react";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/session";
+import { getUnreadEventIds } from "@/lib/chat";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/Button";
 import { MobileDock } from "@/components/MobileDock";
@@ -36,6 +37,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getCurrentUser();
+  const hasUnreadChats = user ? (await getUnreadEventIds(user.id)).size > 0 : false;
 
   return (
     <html
@@ -52,7 +54,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <nav className="hidden lg:flex items-center gap-5">
                 <NavLink href="/">Events</NavLink>
                 {user && <NavLink href="/my-events">My events</NavLink>}
-                {user && <NavLink href="/chats">Chats</NavLink>}
+                {user && (
+                  <NavLink href="/chats">
+                    Chats
+                    {hasUnreadChats && (
+                      <span aria-hidden="true" className="absolute -top-0.5 -right-2 h-2 w-2 rounded-full bg-primary" />
+                    )}
+                  </NavLink>
+                )}
                 {user && (
                   <Link href="/events/new">
                     <Button variant="primary" className="px-4 py-2 text-sm">
@@ -82,7 +91,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <span>WhoWe: it starts with who, it becomes we.</span>
             </div>
           </footer>
-          <MobileDock signedIn={!!user} />
+          <MobileDock signedIn={!!user} hasUnreadChats={hasUnreadChats} />
         </MotionConfig>
       </body>
     </html>

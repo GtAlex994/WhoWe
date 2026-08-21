@@ -22,6 +22,18 @@ export default async function proxy(request: NextRequest) {
   try {
     const decoded = await auth.verifySessionCookie(sessionCookie);
     const userSnap = await db.doc(`users/${decoded.uid}`).get();
+
+    if (!userSnap.exists) {
+      // Valid session signature but no backing user doc — an orphaned
+      // cookie (e.g. the account was deleted). Clear it so future requests
+      // are treated as signed-out, same as getCurrentUser() already does,
+      // instead of pushing this into an onboarding flow whose own submit
+      // would fail with "no document to update".
+      const response = NextResponse.next();
+      response.cookies.delete(SESSION_COOKIE);
+      return response;
+    }
+
     const onboardingCompletedAt = userSnap.data()?.onboardingCompletedAt;
     if (!onboardingCompletedAt) {
       return NextResponse.redirect(new URL("/onboarding", request.url));

@@ -338,7 +338,9 @@ async function main() {
     );
 
     if (evt.chat.length > 0) {
-      let t = evt.startsAt.getTime() - 2 * 24 * 60 * 60 * 1000;
+      // Recent past timestamps regardless of the event's own date, so seeded
+      // messages read as "already sent" — matters for unread-message tracking.
+      let t = now - evt.chat.length * 20 * 60 * 1000;
       for (const msg of evt.chat) {
         const senderId = msg.from === "current" ? CURRENT_USER_UID : byUsername[msg.from].uid;
         const senderName = msg.from === "current" ? "Testy Tester" : byUsername[msg.from].name;

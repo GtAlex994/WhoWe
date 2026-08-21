@@ -9,10 +9,12 @@ function DockLink({
   href,
   label,
   icon: Icon,
+  showDot = false,
 }: {
   href: string;
   label: string;
   icon: typeof Home;
+  showDot?: boolean;
 }) {
   const pathname = usePathname();
   const active = pathname === href;
@@ -22,11 +24,14 @@ function DockLink({
       href={href}
       className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 relative"
     >
-      <Icon
-        size={22}
-        strokeWidth={active ? 2.5 : 2}
-        className={active ? "text-primary" : "text-muted"}
-      />
+      <span className="relative">
+        <Icon
+          size={22}
+          strokeWidth={active ? 2.5 : 2}
+          className={active ? "text-primary" : "text-muted"}
+        />
+        {showDot && <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary border border-surface" />}
+      </span>
       <span className={`text-[10px] font-medium ${active ? "text-primary" : "text-muted"}`}>
         {label}
       </span>
@@ -36,7 +41,7 @@ function DockLink({
 
 const HIDDEN_ON = ["/sign-in", "/onboarding"];
 
-export function MobileDock({ signedIn }: { signedIn: boolean }) {
+export function MobileDock({ signedIn, hasUnreadChats = false }: { signedIn: boolean; hasUnreadChats?: boolean }) {
   const pathname = usePathname();
   if (HIDDEN_ON.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
     return null;
@@ -72,7 +77,7 @@ export function MobileDock({ signedIn }: { signedIn: boolean }) {
         )}
       </div>
 
-      {signedIn && <DockLink href="/chats" label="Chats" icon={MessageCircle} />}
+      {signedIn && <DockLink href="/chats" label="Chats" icon={MessageCircle} showDot={hasUnreadChats} />}
       {signedIn ? (
         <DockLink href="/profile" label="Profile" icon={UserRound} />
       ) : (

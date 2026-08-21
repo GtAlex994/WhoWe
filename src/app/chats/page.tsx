@@ -20,7 +20,12 @@ export default async function ChatsPage() {
 
   const previews = await Promise.all(myEvents.map((event) => getLastMessagePreview(event.id)));
   const rows = myEvents
-    .map((event, i) => ({ event, preview: previews[i] }))
+    .map((event, i) => {
+      const preview = previews[i];
+      const lastReadAt = attendances.find((a) => a.eventId === event.id)?.lastReadAt ?? null;
+      const unread = !!preview && (!lastReadAt || preview.createdAt > lastReadAt);
+      return { event, preview, unread };
+    })
     .sort((a, b) => {
       const at = (a.preview?.createdAt ?? a.event.startsAt).getTime();
       const bt = (b.preview?.createdAt ?? b.event.startsAt).getTime();
@@ -40,19 +45,22 @@ export default async function ChatsPage() {
         </FadeIn>
       ) : (
         <StaggerList className="flex flex-col gap-2">
-          {rows.map(({ event, preview }) => (
+          {rows.map(({ event, preview, unread }) => (
             <StaggerItem key={event.id}>
               <Link
                 href={`/chats/${event.id}`}
                 className="block bg-surface border-2 border-foreground rounded-lg px-4 py-3 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[4px_4px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-medium">{event.title}</div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {unread && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-primary shrink-0" />}
+                    <div className={`truncate ${unread ? "font-semibold" : "font-medium"}`}>{event.title}</div>
+                  </div>
                   {preview && (
                     <span className="text-xs text-muted shrink-0">{formatTime(preview.createdAt)}</span>
                   )}
                 </div>
-                <p className="text-sm text-muted mt-1 truncate">
+                <p className={`text-sm mt-1 truncate ${unread ? "text-foreground" : "text-muted"}`}>
                   {preview
                     ? preview.isPoll
                       ? `${preview.senderName} started a poll`

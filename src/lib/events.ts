@@ -48,6 +48,7 @@ export type AttendanceDTO = {
   eventCategory: string;
   eventCreatorId: string;
   status: AttendanceStatus;
+  lastReadAt: Date | null;
 };
 
 function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO {
@@ -175,8 +176,14 @@ export async function getUserAttendances(userId: string): Promise<AttendanceDTO[
       eventCategory: data.eventCategory,
       eventCreatorId: data.eventCreatorId,
       status: (data.status ?? "joined") as AttendanceStatus,
+      lastReadAt: data.lastReadAt?.toDate() ?? null,
     };
   });
+}
+
+/** Marks an event's chat as read up to now for this attendee — used to compute unread badges. */
+export async function markChatRead(eventId: string, userId: string): Promise<void> {
+  await db.doc(`events/${eventId}/attendees/${userId}`).set({ lastReadAt: FieldValue.serverTimestamp() }, { merge: true });
 }
 
 export async function createEvent(data: {
