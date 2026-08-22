@@ -61,7 +61,7 @@ export function Dock({ signedIn, hasUnreadChats = false }: { signedIn: boolean; 
             <Link
               href="/events/new"
               aria-label="Create event"
-              className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2"
+              className="absolute left-1/2 bottom-2 -translate-x-1/2"
             >
               <motion.span
                 whileTap={{ scale: 0.92 }}
@@ -74,7 +74,7 @@ export function Dock({ signedIn, hasUnreadChats = false }: { signedIn: boolean; 
             <Link
               href="/sign-in"
               aria-label="Sign in"
-              className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2"
+              className="absolute left-1/2 bottom-2 -translate-x-1/2"
             >
               <motion.span
                 whileTap={{ scale: 0.92 }}
