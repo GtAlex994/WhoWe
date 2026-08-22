@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { buildAvataaarsUrl } from "@/lib/avatars";
 import { applyLocationPrecision, calculateProfileCompletion } from "@/lib/users";
+import { CommunityGuidelinesModal } from "@/components/CommunityGuidelinesModal";
 import type { OnboardingState, OnboardingAction } from "../onboarding-reducer";
 import type { StepErrors } from "../validation";
 
@@ -33,6 +35,7 @@ type SafetyPreviewStepProps = {
 };
 
 export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStepProps) {
+  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
   const publicLocation = applyLocationPrecision(state.locationLabel || null, state.locationPrecision);
   const completion = calculateProfileCompletion({
     name: state.displayName,
@@ -65,9 +68,9 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
         </div>
         <p className="text-xs text-muted mt-3">
           WhoWe is an early prototype. Identity verification isn&apos;t live yet.{" "}
-          <Link href="/community-guidelines" className="underline">
+          <button type="button" onClick={() => setGuidelinesOpen(true)} className="underline">
             Read our full community guidelines
-          </Link>{" "}
+          </button>{" "}
           and <Link href="/privacy" className="underline">privacy summary</Link>.
         </p>
       </div>
@@ -157,9 +160,9 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
           />
           <span>
             I agree to the{" "}
-            <Link href="/community-guidelines" className="underline">
+            <button type="button" onClick={() => setGuidelinesOpen(true)} className="underline">
               community guidelines
-            </Link>{" "}
+            </button>{" "}
             and confirm I meet WhoWe&apos;s minimum age requirement.
           </span>
         </label>
@@ -167,6 +170,8 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
 
         <p className="text-xs text-muted pt-2">Your profile will be {completion}% complete.</p>
       </div>
+
+      <CommunityGuidelinesModal open={guidelinesOpen} onClose={() => setGuidelinesOpen(false)} />
     </div>
   );
 }

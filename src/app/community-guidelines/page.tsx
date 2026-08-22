@@ -1,27 +1,5 @@
 import { FadeIn } from "@/components/FadeIn";
-
-const PRINCIPLES = [
-  {
-    title: "Always meet in public places",
-    body: "Every event on WhoWe should be held somewhere public and populated: a restaurant, cafe, park, or venue. Never a private home on a first meetup.",
-  },
-  {
-    title: "Trust your instincts",
-    body: "If something about an event or a person feels off, don't go. You can back out of an event you've joined at any time.",
-  },
-  {
-    title: "Tell someone your plans",
-    body: "Before heading to a meetup with people you haven't met before, let a friend or family member know where you're going and with whom.",
-  },
-  {
-    title: "Protect personal information",
-    body: "Take your time sharing personal details until you've built some trust with someone.",
-  },
-  {
-    title: "In an emergency",
-    body: "If you're ever in immediate danger, contact local emergency services first.",
-  },
-];
+import { COMMUNITY_GUIDELINES } from "@/lib/community-guidelines";
 
 export default function CommunityGuidelinesPage() {
   return (
@@ -34,7 +12,7 @@ export default function CommunityGuidelinesPage() {
         </p>
       </FadeIn>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {PRINCIPLES.map((p) => (
+        {COMMUNITY_GUIDELINES.map((p) => (
           <div key={p.title} className="bg-surface border-2 border-foreground rounded-lg px-5 py-4">
             <div className="font-display text-lg font-semibold">{p.title}</div>
             <p className="text-sm text-muted mt-2 leading-relaxed">{p.body}</p>

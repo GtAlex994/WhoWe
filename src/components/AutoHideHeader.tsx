@@ -8,8 +8,9 @@ export function AutoHideHeader({ children, className = "" }: { children: ReactNo
 
   useEffect(() => {
     lastY.current = window.scrollY;
+    let ticking = false;
 
-    function onScroll() {
+    function update() {
       const y = window.scrollY;
       const diff = y - lastY.current;
 
@@ -22,6 +23,16 @@ export function AutoHideHeader({ children, className = "" }: { children: ReactNo
       }
 
       lastY.current = y;
+      ticking = false;
+    }
+
+    function onScroll() {
+      // Batch to one update per frame so a burst of touch-scroll events
+      // (common on iPad) can't saturate the main thread and delay the tap
+      // that follows.
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
