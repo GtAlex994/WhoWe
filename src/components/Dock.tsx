@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Home, Plus, UserRound, LogIn, CalendarDays, MessageCircle } from "lucide-react";
 import { useAutoHideOnScroll } from "@/hooks/useAutoHideOnScroll";
+import { isNavHiddenRoute } from "@/lib/nav";
 
 function DockLink({
   href,
@@ -36,13 +37,11 @@ function DockLink({
   );
 }
 
-const HIDDEN_ON = ["/sign-in", "/onboarding"];
-
 export function Dock({ signedIn, hasUnreadChats = false }: { signedIn: boolean; hasUnreadChats?: boolean }) {
   const pathname = usePathname();
   const hidden = useAutoHideOnScroll();
 
-  if (HIDDEN_ON.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+  if (isNavHiddenRoute(pathname)) {
     return null;
   }
 
@@ -57,23 +56,31 @@ export function Dock({ signedIn, hasUnreadChats = false }: { signedIn: boolean; 
         <DockLink href="/" label="Events" icon={Home} />
         {signedIn && <DockLink href="/my-events" label="My events" icon={CalendarDays} />}
 
-        <div className="flex items-center justify-center px-1">
+        <div className="relative flex items-center justify-center w-16 shrink-0">
           {signedIn ? (
-            <Link href="/events/new" aria-label="Create event">
+            <Link
+              href="/events/new"
+              aria-label="Create event"
+              className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2"
+            >
               <motion.span
                 whileTap={{ scale: 0.92 }}
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
+                className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
               >
-                <Plus size={20} strokeWidth={2.5} />
+                <Plus size={28} strokeWidth={2.5} />
               </motion.span>
             </Link>
           ) : (
-            <Link href="/sign-in" aria-label="Sign in">
+            <Link
+              href="/sign-in"
+              aria-label="Sign in"
+              className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2"
+            >
               <motion.span
                 whileTap={{ scale: 0.92 }}
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
+                className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
               >
-                <LogIn size={20} strokeWidth={2.5} />
+                <LogIn size={28} strokeWidth={2.5} />
               </motion.span>
             </Link>
           )}

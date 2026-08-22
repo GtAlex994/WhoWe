@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { AutoHideHeader } from "@/components/AutoHideHeader";
+import { isNavHiddenRoute } from "@/lib/nav";
 
 type ConditionalHeaderProps = {
   children: ReactNode;
@@ -20,10 +21,6 @@ function useMounted() {
   );
 }
 
-// Matches Dock's own hidden-route list, since both are part of the same
-// "is there any navigation chrome on this page" decision.
-const HIDDEN_ON = ["/sign-in", "/onboarding"];
-
 export function ConditionalHeader({ children }: ConditionalHeaderProps) {
   const pathname = usePathname();
   const mounted = useMounted();
@@ -32,8 +29,7 @@ export function ConditionalHeader({ children }: ConditionalHeaderProps) {
     return <AutoHideHeader>{children}</AutoHideHeader>;
   }
 
-  const isHiddenRoute = HIDDEN_ON.some((path) => pathname === path || pathname?.startsWith(`${path}/`));
-  if (isHiddenRoute) {
+  if (isNavHiddenRoute(pathname)) {
     return null;
   }
 

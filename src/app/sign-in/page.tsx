@@ -104,7 +104,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="w-full grid grid-cols-1 lg:grid-cols-2 lg:min-h-[calc(100vh-137px)]">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-2 lg:min-h-screen">
       <div className="hidden lg:flex flex-col justify-center bg-foreground text-background px-14 py-16 relative overflow-hidden">
         <p className="font-display text-4xl xl:text-5xl leading-tight max-w-md">
           It starts with

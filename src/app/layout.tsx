@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getUnreadEventIds } from "@/lib/chat";
 import { Dock } from "@/components/Dock";
 import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { MainContent } from "@/components/MainContent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <span className="hidden sm:inline text-sm text-muted">It starts with who, it becomes we.</span>
             </div>
           </ConditionalHeader>
-          <main className="flex-1 relative w-full pb-24">{children}</main>
+          <MainContent>{children}</MainContent>
           <Dock signedIn={!!user} hasUnreadChats={hasUnreadChats} />
         </MotionConfig>
       </body>
