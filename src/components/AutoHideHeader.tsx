@@ -30,7 +30,7 @@ export function AutoHideHeader({ children, className = "" }: { children: ReactNo
 
   return (
     <header
-      className={`sticky top-0 z-20 border-b-2 border-foreground bg-background/95 backdrop-blur-sm transition-transform duration-300 ease-out ${
+      className={`sticky top-0 z-40 border-b-2 border-foreground bg-background/95 backdrop-blur-sm transition-transform duration-300 ease-out ${
         hidden ? "-translate-y-full" : "translate-y-0"
       } ${className}`}
     >
