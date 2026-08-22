@@ -2,7 +2,7 @@
 
 import { ChipSelector } from "@/components/ChipSelector";
 import { SingleChoice } from "@/components/SingleChoice";
-import { REQUIRED_GROUP_SIZES, PLANNING_STYLES, ACTIVITY_VIBES, PERSONALITIES, GOALS } from "@/lib/social";
+import { GROUP_SIZES, PLANNING_STYLES, ACTIVITY_VIBES, PERSONALITIES, GOALS } from "@/lib/social";
 import type { OnboardingState, OnboardingAction } from "../onboarding-reducer";
 import type { StepErrors } from "../validation";
 
@@ -21,7 +21,7 @@ export function SocialGoalsStep({ state, dispatch, errors }: SocialGoalsStepProp
       <SingleChoice
         label="Preferred group size"
         hint="How many people do you prefer at events?"
-        options={REQUIRED_GROUP_SIZES}
+        options={GROUP_SIZES}
         value={state.socialStyle.groupSize}
         onChange={(groupSize) => patchSocialStyle({ groupSize })}
         required

@@ -196,6 +196,10 @@ export const INTEREST_CATEGORIES: InterestCategory[] = [
       "Fashion",
       "Cars",
       "Motorcycles",
+      "Drinking",
+      "Social Drinking",
+      "Smoking",
+      "Vaping",
     ],
   },
 ];

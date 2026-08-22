@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChipSelector } from "@/components/ChipSelector";
-import { INTEREST_CATEGORIES, ACTIVITIES, getAllInterests } from "@/lib/interests";
+import { INTEREST_CATEGORIES, getAllInterests } from "@/lib/interests";
 import type { OnboardingState, OnboardingAction } from "../onboarding-reducer";
 import type { StepErrors } from "../validation";
 
@@ -59,23 +59,6 @@ export function InterestsActivitiesStep({ state, dispatch, errors }: InterestsAc
           ))}
         </div>
         {errors.interests && <p className="text-sm text-[#8c2f2f] mt-2">{errors.interests}</p>}
-      </div>
-
-      {/* Activities */}
-      <div className="border-t-2 border-foreground pt-6">
-        <h2 className="font-display font-semibold text-lg mb-1">What would you actually join?</h2>
-        <p className="text-sm text-muted mb-4">
-          Choose at least 3 activities you&apos;d genuinely be up for. {state.activities.length} selected.
-        </p>
-        <ChipSelector
-          items={ACTIVITIES}
-          selected={state.activities}
-          onChange={(activities) => dispatch({ type: "PATCH", patch: { activities } })}
-          max={10}
-          maxIsSoft
-          ariaLabel="Activities"
-        />
-        {errors.activities && <p className="text-sm text-[#8c2f2f] mt-2">{errors.activities}</p>}
       </div>
 
       {/* Dislikes (collapsed, optional) */}

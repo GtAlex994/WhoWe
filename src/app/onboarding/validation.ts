@@ -33,7 +33,6 @@ export function validateStep(stepId: string, state: OnboardingState): { valid: b
 
     case "interests-activities":
       if (state.interests.length < 3) errors.interests = "Choose at least 3 interests to continue.";
-      if (state.activities.length < 3) errors.activities = "Choose at least 3 activities to continue.";
       break;
 
     case "languages":

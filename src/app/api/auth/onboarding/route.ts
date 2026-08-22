@@ -69,9 +69,7 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(interests) || interests.length < 3) {
       return NextResponse.json({ error: "Choose at least 3 interests." }, { status: 400 });
     }
-    if (!Array.isArray(activities) || activities.length < 3) {
-      return NextResponse.json({ error: "Choose at least 3 activities." }, { status: 400 });
-    }
+    const cleanActivities: string[] = Array.isArray(activities) ? activities : [];
     const cleanDislikes: string[] = Array.isArray(dislikes) ? dislikes : [];
     if (interests.some((i: string) => cleanDislikes.includes(i))) {
       return NextResponse.json(
@@ -131,7 +129,7 @@ export async function POST(request: NextRequest) {
         locationPrecision: locationPrecision === "suburb-and-city" ? "suburb-and-city" : "city",
         locationVerifiedAt: FieldValue.serverTimestamp(),
         interests,
-        activities,
+        activities: cleanActivities,
         dislikes: cleanDislikes,
         languages,
         socialStyle: {

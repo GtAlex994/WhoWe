@@ -14,7 +14,3 @@ export const GOALS: string[] = [
   "Host events",
   "Language exchange",
 ];
-
-// Onboarding requires an explicit group size, so "No preference" (only sensible
-// when editing later) is excluded from the required control.
-export const REQUIRED_GROUP_SIZES = GROUP_SIZES.filter((size) => size !== "No preference");
