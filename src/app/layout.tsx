@@ -45,18 +45,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <MotionConfig reducedMotion="user">
           <ConditionalHeader>
-            <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center">
+            <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-3">
               <Link href="/" className="shrink-0">
                 <Image src="/WhoWe.png" alt="WhoWe" width={120} height={40} priority />
               </Link>
+              <span className="hidden sm:inline text-sm text-muted">It starts with who, it becomes we.</span>
             </div>
           </ConditionalHeader>
           <main className="flex-1 relative w-full pb-24">{children}</main>
-          <footer className="hidden lg:block border-t-2 border-foreground mt-16">
-            <div className="w-full px-4 sm:px-6 lg:px-10 py-6 text-sm text-muted flex items-center justify-between">
-              <span>WhoWe: it starts with who, it becomes we.</span>
-            </div>
-          </footer>
           <Dock signedIn={!!user} hasUnreadChats={hasUnreadChats} />
         </MotionConfig>
       </body>

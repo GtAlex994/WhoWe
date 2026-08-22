@@ -59,21 +59,21 @@ export function Dock({ signedIn, hasUnreadChats = false }: { signedIn: boolean; 
 
         <div className="flex items-center justify-center px-1">
           {signedIn ? (
-            <Link href="/events/new" aria-label="Create event" className="-mt-4">
+            <Link href="/events/new" aria-label="Create event">
               <motion.span
                 whileTap={{ scale: 0.92 }}
-                className="flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
               >
-                <Plus size={24} strokeWidth={2.5} />
+                <Plus size={20} strokeWidth={2.5} />
               </motion.span>
             </Link>
           ) : (
-            <Link href="/sign-in" aria-label="Sign in" className="-mt-4">
+            <Link href="/sign-in" aria-label="Sign in">
               <motion.span
                 whileTap={{ scale: 0.92 }}
-                className="flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)]"
               >
-                <LogIn size={24} strokeWidth={2.5} />
+                <LogIn size={20} strokeWidth={2.5} />
               </motion.span>
             </Link>
           )}
