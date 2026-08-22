@@ -93,7 +93,7 @@ export default async function HomePage({
   nearParams.set("near", "1");
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-8">
       {pendingInvites.length > 0 && (
         <FadeIn delay={0.04}>
           <WildInviteBanner invites={pendingInvites} />
@@ -149,7 +149,7 @@ export default async function HomePage({
           </div>
         </FadeIn>
       ) : (
-        <StaggerList className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <StaggerList className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
           {eventsWithDistance.map(({ event, distance }) => (
             <StaggerItem key={event.id}>
               <Link

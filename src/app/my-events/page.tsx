@@ -45,7 +45,7 @@ export default async function MyEventsPage() {
   const attending = orderedEvents.filter((e) => e.creatorId !== user.id);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-10">
+    <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-10 flex flex-col gap-10">
       <FadeIn>
         <h1 className="text-4xl font-semibold tracking-tight">My events</h1>
         <p className="text-muted mt-1.5">Everything you&apos;re hosting or attending.</p>
@@ -64,7 +64,7 @@ export default async function MyEventsPage() {
             .
           </p>
         ) : (
-          <StaggerList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <StaggerList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
             {hosting.map((event) => (
               <StaggerItem key={event.id}>
                 <EventCard event={event} />
@@ -87,7 +87,7 @@ export default async function MyEventsPage() {
             .
           </p>
         ) : (
-          <StaggerList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <StaggerList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
             {attending.map((event) => (
               <StaggerItem key={event.id}>
                 <EventCard event={event} />
