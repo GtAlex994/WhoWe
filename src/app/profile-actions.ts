@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, clearCurrentUser } from "@/lib/session";
 import { db } from "@/lib/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 import { isValidMaxDistance } from "@/lib/users";
 
@@ -15,12 +16,20 @@ export async function updateBasicProfile(formData: FormData) {
 
   const bio = String(formData.get("bio") ?? "").trim();
   const locationLabel = String(formData.get("locationLabel") ?? "").trim();
+  const latRaw = formData.get("latitude");
+  const lngRaw = formData.get("longitude");
+  const locationLat = latRaw ? Number(latRaw) : null;
+  const locationLng = lngRaw ? Number(lngRaw) : null;
+  const hasCoords = Number.isFinite(locationLat) && Number.isFinite(locationLng);
 
   const userRef = db.doc(`users/${user.id}`);
   await userRef.update({
     name,
     bio: bio || null,
     locationLabel: locationLabel || null,
+    locationLat: hasCoords ? locationLat : null,
+    locationLng: hasCoords ? locationLng : null,
+    ...(hasCoords ? { locationVerifiedAt: FieldValue.serverTimestamp() } : {}),
   });
 
   revalidatePath("/profile");

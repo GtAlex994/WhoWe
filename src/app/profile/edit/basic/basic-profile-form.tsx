@@ -1,16 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { updateBasicProfile } from "@/app/profile-actions";
 import { Button } from "@/components/Button";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
+import { LocationSearchInput } from "@/components/LocationSearchInput";
+import { LocationConsentButton } from "@/components/LocationConsentButton";
 import { resolveAvatarSrc } from "@/lib/avatars";
 import type { UserDTO } from "@/lib/users";
 
 export function BasicProfileForm({ user }: { user: UserDTO }) {
   const router = useRouter();
+  const [locationLabel, setLocationLabel] = useState(user.locationLabel ?? "");
+  const [locationLat, setLocationLat] = useState<number | null>(user.locationLat);
+  const [locationLng, setLocationLng] = useState<number | null>(user.locationLng);
 
   return (
     <form action={updateBasicProfile} className="flex flex-col gap-6">
@@ -76,16 +82,32 @@ export function BasicProfileForm({ user }: { user: UserDTO }) {
         <label htmlFor="locationLabel" className="text-sm font-medium block mb-2">
           City / Approximate Location
         </label>
-        <input
+        <input type="hidden" name="locationLabel" value={locationLabel} />
+        <input type="hidden" name="latitude" value={locationLat ?? ""} />
+        <input type="hidden" name="longitude" value={locationLng ?? ""} />
+        <LocationSearchInput
           id="locationLabel"
-          name="locationLabel"
-          type="text"
-          defaultValue={user.locationLabel ?? ""}
-          maxLength={100}
-          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+          value={locationLabel}
+          onChange={(value) => {
+            setLocationLabel(value);
+            setLocationLat(null);
+            setLocationLng(null);
+          }}
+          onSelect={(label, lat, lng) => {
+            setLocationLabel(label);
+            setLocationLat(lat);
+            setLocationLng(lng);
+          }}
           placeholder="e.g., Adelaide, SA or Melbourne"
         />
-        <p className="text-xs text-muted mt-1">Your approximate location helps others find local events</p>
+        <p className="text-xs text-muted mt-1 mb-3">Your approximate location helps others find local events</p>
+        <LocationConsentButton
+          onLocated={(label, lat, lng) => {
+            setLocationLabel(label);
+            setLocationLat(lat);
+            setLocationLng(lng);
+          }}
+        />
       </div>
 
       {/* Bio */}
