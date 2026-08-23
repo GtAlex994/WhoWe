@@ -3,6 +3,8 @@ import { db } from "@/lib/firebase-admin";
 import { pickWildCandidates } from "@/lib/wildMatch";
 import { distanceKm, CHECK_IN_RADIUS_KM } from "@/lib/geo";
 import { getBlockedUserIds, getBlockStatus } from "@/lib/moderation";
+import { getUsersByIds } from "@/lib/users-server";
+import { sendEmail } from "@/lib/email";
 
 export type EventDTO = {
   id: string;
@@ -380,6 +382,19 @@ export async function createWildEventDoc(data: {
             eventCreatorId: data.creatorId,
           }),
       ),
+    );
+
+    const candidates = await getUsersByIds(candidateIds);
+    await Promise.all(
+      candidateIds.map((candidateId) => {
+        const candidate = candidates[candidateId];
+        if (!candidate?.email || !candidate.notifyEmail) return;
+        return sendEmail({
+          to: candidate.email,
+          subject: "You've been invited to a Wild meetup",
+          html: `<p>You've been invited to a Wild meetup near ${data.location} on ${data.startsAt.toLocaleString()}.</p><p><a href="https://whowe.live/">Respond on WhoWe</a></p>`,
+        });
+      }),
     );
   } catch (error) {
     console.error(`Failed to send Wild event invites for ${eventRef.id}:`, error);

@@ -22,10 +22,14 @@ import {
   checkIntoEvent as checkIntoEventDb,
   checkOutOfEvent as checkOutOfEventDb,
   markChatRead as markChatReadDb,
+  getEvent,
+  getEventAttendees,
 } from "@/lib/events";
+import { getUsersByIds } from "@/lib/users-server";
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sendEmail } from "@/lib/email";
 
 
 export async function setUserLocation(lat: number, lng: number, label: string | null) {
@@ -160,7 +164,25 @@ export async function cancelEvent(eventId: string) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
+  const [event, attendees] = await Promise.all([getEvent(eventId), getEventAttendees(eventId)]);
+
   await cancelEventDb(eventId, user.id);
+
+  if (event) {
+    const others = attendees.filter((a) => a.userId !== user.id);
+    const people = await getUsersByIds(others.map((a) => a.userId));
+    await Promise.all(
+      others.map((a) => {
+        const person = people[a.userId];
+        if (!person?.email || !person.notifyEmail) return;
+        return sendEmail({
+          to: person.email,
+          subject: `${event.title} was cancelled`,
+          html: `<p>The host cancelled "${event.title}", which you were going to attend.</p>`,
+        });
+      }),
+    );
+  }
 
   revalidatePath(`/events/${eventId}`);
   revalidatePath("/");
@@ -181,6 +203,19 @@ export async function joinEvent(eventId: string) {
   if (!user) redirect("/sign-in");
 
   await joinEventDb(eventId, user.id);
+
+  const event = await getEvent(eventId);
+  if (event && event.creatorId !== user.id) {
+    const hosts = await getUsersByIds([event.creatorId]);
+    const host = hosts[event.creatorId];
+    if (host?.email && host.notifyEmail) {
+      await sendEmail({
+        to: host.email,
+        subject: `@${user.username} joined ${event.title}`,
+        html: `<p><strong>@${user.username}</strong> just joined your event "${event.title}".</p><p><a href="https://whowe.live/events/${eventId}">View the event</a></p>`,
+      });
+    }
+  }
 
   revalidatePath(`/events/${eventId}`);
 }
