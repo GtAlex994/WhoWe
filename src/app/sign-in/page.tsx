@@ -232,15 +232,6 @@ export default function SignInPage() {
                 </Button>
               </form>
             </FadeIn>
-
-            {method === "code" && (
-              <FadeIn delay={0.1}>
-                <p className="text-xs text-muted">
-                  Useful if you have the email open on a different device than the one you&apos;re
-                  signing in on.
-                </p>
-              </FadeIn>
-            )}
           </>
         )}
       </div>
