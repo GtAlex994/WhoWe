@@ -24,6 +24,10 @@ export type EventDTO = {
   isWild: boolean;
   targetHeadcount: number | null;
   cancelledAt: Date | null;
+  minAttendees: number | null;
+  maxAttendees: number | null;
+  isFree: boolean;
+  price: number | null;
 };
 
 export type CheckInStatus = "checked-in" | "left";
@@ -73,6 +77,10 @@ function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO 
     isWild: data.isWild ?? false,
     targetHeadcount: data.targetHeadcount ?? null,
     cancelledAt: data.cancelledAt?.toDate() ?? null,
+    minAttendees: data.minAttendees ?? null,
+    maxAttendees: data.maxAttendees ?? null,
+    isFree: data.isFree ?? true,
+    price: data.price ?? null,
   };
 }
 
@@ -217,6 +225,10 @@ export async function createEvent(data: {
   startsAt: Date;
   category: string;
   creatorId: string;
+  minAttendees: number | null;
+  maxAttendees: number | null;
+  isFree: boolean;
+  price: number | null;
 }): Promise<string> {
   const eventRef = db.collection("events").doc();
 
@@ -254,6 +266,10 @@ export async function updateEvent(
     longitude: number | null;
     startsAt: Date;
     category: string;
+    minAttendees: number | null;
+    maxAttendees: number | null;
+    isFree: boolean;
+    price: number | null;
   },
 ): Promise<void> {
   const eventRef = db.doc(`events/${eventId}`);
@@ -323,6 +339,8 @@ export async function createWildEventDoc(data: {
   startsAt: Date;
   targetHeadcount: number;
   creatorId: string;
+  isFree: boolean;
+  price: number | null;
 }): Promise<string> {
   const eventRef = db.collection("events").doc();
   const title = "Wild meetup";
@@ -339,6 +357,8 @@ export async function createWildEventDoc(data: {
       creatorId: data.creatorId,
       isWild: true,
       targetHeadcount: data.targetHeadcount,
+      isFree: data.isFree,
+      price: data.price,
       createdAt: FieldValue.serverTimestamp(),
       attendeeCount: 1,
       ratingSum: 0,

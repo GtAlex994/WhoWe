@@ -22,23 +22,26 @@ export function SearchForm({
   category,
   sortNear,
   hasUserLocation,
+  showAll,
 }: {
   q?: string;
   category?: string;
   sortNear?: boolean;
   hasUserLocation?: boolean;
+  showAll?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
   const otherParams = new URLSearchParams();
   if (q) otherParams.set("q", q);
   if (category) otherParams.set("category", category);
-  otherParams.set("sort", "soonest");
+  if (showAll) otherParams.set("showAll", "1");
 
   const nearParams = new URLSearchParams();
   if (q) nearParams.set("q", q);
   if (category) nearParams.set("category", category);
-  nearParams.set("sort", "near");
+  if (showAll) nearParams.set("showAll", "1");
+  nearParams.set("near", "1");
 
   return (
     <div className="flex flex-col gap-3">

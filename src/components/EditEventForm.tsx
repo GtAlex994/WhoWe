@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { updateEvent } from "@/app/actions";
 import { CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/Button";
@@ -13,6 +14,8 @@ function toLocalDateTimeValue(date: Date) {
 }
 
 export function EditEventForm({ event }: { event: EventDTO }) {
+  const [isPaid, setIsPaid] = useState(!event.isFree);
+
   return (
     <form action={updateEvent.bind(null, event.id)} className="flex flex-col gap-4">
       <div>
@@ -70,6 +73,65 @@ export function EditEventForm({ event }: { event: EventDTO }) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium block mb-1">
+            Min people <span className="text-muted font-normal">(optional)</span>
+          </label>
+          <input
+            type="number"
+            name="minAttendees"
+            min={1}
+            defaultValue={event.minAttendees ?? ""}
+            placeholder="No minimum"
+            className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium block mb-1">
+            Max people <span className="text-muted font-normal">(optional)</span>
+          </label>
+          <input
+            type="number"
+            name="maxAttendees"
+            min={1}
+            defaultValue={event.maxAttendees ?? ""}
+            placeholder="No limit"
+            className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2 text-sm font-medium cursor-pointer w-fit">
+          <input
+            type="checkbox"
+            name="isPaid"
+            checked={isPaid}
+            onChange={(e) => setIsPaid(e.target.checked)}
+          />
+          This event costs money
+        </label>
+        {isPaid && (
+          <div className="mt-2 max-w-[160px]">
+            <label className="text-sm font-medium block mb-1">Price per person</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted">$</span>
+              <input
+                type="number"
+                name="price"
+                required={isPaid}
+                min={0.01}
+                step={0.01}
+                defaultValue={event.price ?? ""}
+                placeholder="15"
+                className="w-full border-2 border-foreground bg-surface rounded-md pl-7 pr-4 py-2.5 outline-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <Button type="submit" variant="primary" className="w-full mt-2">

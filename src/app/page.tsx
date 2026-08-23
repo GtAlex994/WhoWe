@@ -110,7 +110,13 @@ export default async function HomePage({
       </FadeIn>
 
       <FadeIn delay={0.08}>
-        <SearchForm q={q} category={category} sortNear={sortNear} hasUserLocation={hasUserLocation} />
+        <SearchForm
+          q={q}
+          category={category}
+          sortNear={sortNear}
+          hasUserLocation={hasUserLocation}
+          showAll={showAll === "1"}
+        />
       </FadeIn>
 
       {eventsWithDistance.length === 0 ? (

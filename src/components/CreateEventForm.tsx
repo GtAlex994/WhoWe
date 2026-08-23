@@ -14,6 +14,7 @@ function defaultStartsAt() {
 
 export function CreateEventForm() {
   const [mode, setMode] = useState<"standard" | "wild">("standard");
+  const [isPaid, setIsPaid] = useState(false);
 
   return (
     <form action={createEvent} className="flex flex-col gap-4">
@@ -120,6 +121,64 @@ export function CreateEventForm() {
               defaultValue={4}
               className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
             />
+          </div>
+        )}
+      </div>
+
+      {mode === "standard" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium block mb-1">
+              Min people <span className="text-muted font-normal">(optional)</span>
+            </label>
+            <input
+              type="number"
+              name="minAttendees"
+              min={1}
+              placeholder="No minimum"
+              className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-1">
+              Max people <span className="text-muted font-normal">(optional)</span>
+            </label>
+            <input
+              type="number"
+              name="maxAttendees"
+              min={1}
+              placeholder="No limit"
+              className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+            />
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="flex items-center gap-2 text-sm font-medium cursor-pointer w-fit">
+          <input
+            type="checkbox"
+            name="isPaid"
+            checked={isPaid}
+            onChange={(e) => setIsPaid(e.target.checked)}
+          />
+          This event costs money
+        </label>
+        {isPaid && (
+          <div className="mt-2 max-w-[160px]">
+            <label className="text-sm font-medium block mb-1">Price per person</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted">$</span>
+              <input
+                type="number"
+                name="price"
+                required={isPaid}
+                min={0.01}
+                step={0.01}
+                placeholder="15"
+                className="w-full border-2 border-foreground bg-surface rounded-md pl-7 pr-4 py-2.5 outline-none"
+              />
+            </div>
           </div>
         )}
       </div>

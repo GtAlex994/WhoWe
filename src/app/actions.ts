@@ -57,6 +57,38 @@ export async function signOut() {
   redirect("/sign-in");
 }
 
+function parsePriceFields(formData: FormData): { isFree: boolean; price: number | null } {
+  // Checkboxes are absent from FormData when unchecked, so "isPaid" (default
+  // unchecked = free) avoids the mismatch a default-checked "isFree" would
+  // have with that behavior.
+  const isPaid = formData.get("isPaid") === "on";
+  if (!isPaid) return { isFree: true, price: null };
+
+  const price = Number(formData.get("price"));
+  if (!Number.isFinite(price) || price <= 0) {
+    throw new Error("Enter a price, or mark this event as free");
+  }
+  return { isFree: false, price };
+}
+
+function parseCapacityFields(formData: FormData): { minAttendees: number | null; maxAttendees: number | null } {
+  const minRaw = formData.get("minAttendees");
+  const maxRaw = formData.get("maxAttendees");
+  const minAttendees = minRaw ? Number(minRaw) : null;
+  const maxAttendees = maxRaw ? Number(maxRaw) : null;
+
+  if (minAttendees != null && (!Number.isInteger(minAttendees) || minAttendees < 1)) {
+    throw new Error("Minimum people must be a positive number");
+  }
+  if (maxAttendees != null && (!Number.isInteger(maxAttendees) || maxAttendees < 1)) {
+    throw new Error("Maximum people must be a positive number");
+  }
+  if (minAttendees != null && maxAttendees != null && minAttendees > maxAttendees) {
+    throw new Error("Minimum people can't be more than the maximum");
+  }
+  return { minAttendees, maxAttendees };
+}
+
 export async function createEvent(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
@@ -77,6 +109,8 @@ export async function createEvent(formData: FormData) {
   const latitude = latRaw ? Number(latRaw) : null;
   const longitude = lngRaw ? Number(lngRaw) : null;
 
+  const { isFree, price } = parsePriceFields(formData);
+
   if (mode === "wild") {
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       throw new Error("Pick a location from the suggestions so we know where to invite people to");
@@ -94,6 +128,8 @@ export async function createEvent(formData: FormData) {
       startsAt,
       targetHeadcount,
       creatorId: user.id,
+      isFree,
+      price,
     });
 
     revalidatePath("/");
@@ -109,6 +145,8 @@ export async function createEvent(formData: FormData) {
     throw new Error("Invalid category");
   }
 
+  const { minAttendees, maxAttendees } = parseCapacityFields(formData);
+
   const eventId = await createEventDoc({
     title,
     description,
@@ -117,6 +155,10 @@ export async function createEvent(formData: FormData) {
     longitude: Number.isFinite(longitude) ? longitude : null,
     startsAt,
     category,
+    minAttendees,
+    maxAttendees,
+    isFree,
+    price,
     creatorId: user.id,
   });
 
@@ -146,6 +188,9 @@ export async function updateEvent(eventId: string, formData: FormData) {
   const latitude = latRaw ? Number(latRaw) : null;
   const longitude = lngRaw ? Number(lngRaw) : null;
 
+  const { isFree, price } = parsePriceFields(formData);
+  const { minAttendees, maxAttendees } = parseCapacityFields(formData);
+
   await updateEventDb(eventId, user.id, {
     title,
     description,
@@ -154,6 +199,10 @@ export async function updateEvent(eventId: string, formData: FormData) {
     longitude: Number.isFinite(longitude) ? longitude : null,
     startsAt,
     category,
+    minAttendees,
+    maxAttendees,
+    isFree,
+    price,
   });
 
   revalidatePath(`/events/${eventId}`);

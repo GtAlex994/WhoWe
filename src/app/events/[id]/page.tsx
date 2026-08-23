@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Users, DollarSign } from "lucide-react";
 import { getEvent, getEventAttendees, getEventRatings, getAttendeeStatus } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users-server";
 import { getCurrentUser } from "@/lib/session";
 import { joinEvent, leaveEvent, rateEvent, cancelEvent, removeAttendee } from "@/app/actions";
 import { getHostRatings } from "@/lib/ratings";
 import { CategoryTag } from "@/components/CategoryTag";
+import { BackButton } from "@/components/BackButton";
 import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
@@ -72,8 +73,22 @@ export default async function EventDetailPage({
 
   const canChat = currentUser != null && (isAttending || isCreator);
 
+  const capacityLabel =
+    event.minAttendees != null && event.maxAttendees != null
+      ? `${event.minAttendees}–${event.maxAttendees} people`
+      : event.maxAttendees != null
+        ? `Up to ${event.maxAttendees} people`
+        : event.minAttendees != null
+          ? `At least ${event.minAttendees} people`
+          : null;
+
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10">
+      <FadeIn className="mb-6">
+        <BackButton />
+      </FadeIn>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
       <div className="flex flex-col gap-6">
         <FadeIn>
           <div className="flex items-center gap-3 flex-wrap">
@@ -86,6 +101,24 @@ export default async function EventDetailPage({
           {distance != null && (
             <p className="text-accent text-sm font-medium mt-1">{formatDistance(distance)}</p>
           )}
+          <div className="flex items-center gap-3 flex-wrap mt-3">
+            {capacityLabel && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted border-2 border-foreground rounded-full px-2.5 py-1">
+                <Users size={12} />
+                {capacityLabel}
+              </span>
+            )}
+            {event.isFree ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-accent border-2 border-accent rounded-full px-2.5 py-1">
+                Free
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground border-2 border-foreground rounded-full px-2.5 py-1">
+                <DollarSign size={12} />
+                {event.price} per person
+              </span>
+            )}
+          </div>
         </FadeIn>
 
         {event.cancelledAt && (
@@ -232,8 +265,15 @@ export default async function EventDetailPage({
           <h2 className="text-sm font-medium mb-3 text-muted uppercase tracking-wide">
             {event.isWild
               ? `${event.attendeeCount} of ${event.targetHeadcount} going`
-              : `${event.attendeeCount} ${event.attendeeCount === 1 ? "person" : "people"} going`}
+              : event.maxAttendees != null
+                ? `${event.attendeeCount} of ${event.maxAttendees} going`
+                : `${event.attendeeCount} ${event.attendeeCount === 1 ? "person" : "people"} going`}
           </h2>
+          {!event.isWild && event.minAttendees != null && event.attendeeCount < event.minAttendees && (
+            <p className="text-xs text-muted -mt-2 mb-3">
+              Needs at least {event.minAttendees} to happen
+            </p>
+          )}
           <StaggerList className="flex flex-col gap-2">
             {attendees.map((a) => (
               <StaggerItem
@@ -269,6 +309,7 @@ export default async function EventDetailPage({
           </StaggerList>
         </div>
         </FadeIn>
+      </div>
       </div>
     </div>
   );

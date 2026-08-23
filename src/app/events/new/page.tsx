@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { FadeIn } from "@/components/FadeIn";
 import { CreateEventForm } from "@/components/CreateEventForm";
+import { BackButton } from "@/components/BackButton";
 
 const TIPS = [
   "Pick a place that's genuinely public: a business with staff and other customers around, not a private residence.",
@@ -15,7 +16,11 @@ export default async function NewEventPage() {
   if (!user.onboardingCompletedAt) redirect("/onboarding");
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10">
+      <FadeIn className="mb-6">
+        <BackButton />
+      </FadeIn>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
       <div className="flex flex-col gap-6 max-w-xl">
         <FadeIn>
           <h1 className="text-4xl font-semibold tracking-tight">Create an event</h1>
@@ -43,6 +48,7 @@ export default async function NewEventPage() {
           </ul>
         </div>
       </FadeIn>
+      </div>
     </div>
   );
 }
