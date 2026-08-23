@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebase-admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const MAX_ATTEMPTS = 5;
 
@@ -10,6 +11,14 @@ function hashCode(code: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ipRateLimit = await checkRateLimit(`otp-verify:${getClientIp(request)}`, 30, 60 * 60 * 1000);
+    if (!ipRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many attempts from this network. Try again in a bit." },
+        { status: 429 },
+      );
+    }
+
     const { email: rawEmail, code: rawCode } = await request.json();
     const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
     const code = typeof rawCode === "string" ? rawCode.trim() : "";

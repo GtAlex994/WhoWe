@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { Resend } from "resend";
 import { db } from "@/lib/firebase-admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 30 * 1000;
@@ -16,6 +17,14 @@ function hashCode(code: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ipRateLimit = await checkRateLimit(`otp-request:${getClientIp(request)}`, 10, 60 * 60 * 1000);
+    if (!ipRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many code requests from this network. Try again in a bit." },
+        { status: 429 },
+      );
+    }
+
     const { email: rawEmail } = await request.json();
     const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
     if (!EMAIL_RE.test(email)) {
