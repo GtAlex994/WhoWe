@@ -10,6 +10,7 @@ import { ProfileActions } from "@/components/ProfileActions";
 import { getBlockStatus } from "@/lib/moderation";
 import { unblockUser } from "@/app/moderation-actions";
 import { Button } from "@/components/Button";
+import { ExpandableChips } from "@/components/ExpandableChips";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
@@ -127,37 +128,28 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
         {profile.interests.length > 0 && (
           <section>
             <h2 className="font-display text-lg font-semibold mb-4">❤️ Interests</h2>
-            <div className="flex flex-wrap gap-2">
-              {profile.interests.map((interest) => (
-                <span key={interest} className="text-sm rounded-md border-2 border-foreground bg-primary text-primary-foreground px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]">
-                  {interest}
-                </span>
-              ))}
-            </div>
+            <ExpandableChips items={profile.interests} limit={6} variant="primary" />
           </section>
         )}
 
         {profile.activities.length > 0 && (
           <section>
             <h2 className="font-display text-lg font-semibold mb-4">⚡ Up for</h2>
-            <div className="flex flex-wrap gap-2">
-              {profile.activities.map((activity) => (
-                <span key={activity} className="text-sm rounded-md border-2 border-foreground px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]">
-                  {activity}
-                </span>
-              ))}
-            </div>
+            <ExpandableChips items={profile.activities} limit={5} />
           </section>
         )}
 
         {profile.languages.length > 0 && (
           <section>
             <h2 className="font-display text-lg font-semibold mb-4">🗣️ Languages</h2>
-            <div className="space-y-2 divide-y-2 divide-foreground">
+            <div className="border-2 border-foreground rounded-md p-4 space-y-3">
               {profile.languages.map((lang, idx) => (
-                <div key={`${lang.language}-${idx}`} className="flex items-center justify-between py-2">
+                <div
+                  key={`${lang.language}-${idx}`}
+                  className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0"
+                >
                   <span className="text-sm">{lang.language}</span>
-                  <span className="text-xs text-muted capitalize">{lang.proficiency}</span>
+                  <span className="text-sm text-muted capitalize">{lang.proficiency}</span>
                 </div>
               ))}
             </div>

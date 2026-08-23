@@ -11,6 +11,7 @@ import { calculateAge } from "@/lib/age";
 import type { UserLanguage } from "@/lib/languages";
 import { resolveAvatarSrc } from "@/lib/avatars";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
+import { ExpandableChips } from "@/components/ExpandableChips";
 
 function formatDate(date: Date | null): string {
   if (!date) return "";
@@ -187,21 +188,7 @@ export default async function ProfilePage() {
             </div>
 
             {user.interests && Array.isArray(user.interests) && user.interests.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {user.interests.slice(0, 6).map((interest: string) => (
-                  <span
-                    key={interest}
-                    className="text-sm rounded-md border-2 border-foreground bg-primary text-primary-foreground px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]"
-                  >
-                    {interest}
-                  </span>
-                ))}
-                {user.interests.length > 6 && (
-                  <button className="text-sm rounded-md border-2 border-foreground px-3 py-1 text-muted hover:text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px transition-all">
-                    +{user.interests.length - 6} more
-                  </button>
-                )}
-              </div>
+              <ExpandableChips items={user.interests} limit={6} variant="primary" />
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">Tell us what you&apos;re into to improve your matches.</p>
@@ -226,21 +213,7 @@ export default async function ProfilePage() {
             </div>
 
             {user.activities && Array.isArray(user.activities) && user.activities.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {user.activities.slice(0, 5).map((activity: string) => (
-                  <span
-                    key={activity}
-                    className="text-sm rounded-md border-2 border-foreground px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]"
-                  >
-                    {activity}
-                  </span>
-                ))}
-                {user.activities.length > 5 && (
-                  <button className="text-sm rounded-md border-2 border-foreground px-3 py-1 text-muted hover:text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px transition-all">
-                    +{user.activities.length - 5} more
-                  </button>
-                )}
-              </div>
+              <ExpandableChips items={user.activities} limit={5} />
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
                 <p className="text-sm text-muted mb-3">What would you actually like to do with other people?</p>
@@ -265,11 +238,14 @@ export default async function ProfilePage() {
             </div>
 
             {user.languages && Array.isArray(user.languages) && user.languages.length > 0 ? (
-              <div className="space-y-2 divide-y-2 divide-foreground">
+              <div className="border-2 border-foreground rounded-md p-4 space-y-3">
                 {user.languages.map((lang: UserLanguage, idx: number) => (
-                  <div key={`${lang.language}-${idx}`} className="flex items-center justify-between py-2">
+                  <div
+                    key={`${lang.language}-${idx}`}
+                    className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0"
+                  >
                     <span className="text-sm">{lang.language}</span>
-                    <span className="text-xs text-muted capitalize">{lang.proficiency}</span>
+                    <span className="text-sm text-muted capitalize">{lang.proficiency}</span>
                   </div>
                 ))}
               </div>
