@@ -4,7 +4,7 @@ import { MessageCircle } from "lucide-react";
 import { getEvent, getEventAttendees, getEventRatings, getAttendeeStatus } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users-server";
 import { getCurrentUser } from "@/lib/session";
-import { joinEvent, leaveEvent, rateEvent } from "@/app/actions";
+import { joinEvent, leaveEvent, rateEvent, cancelEvent, removeAttendee } from "@/app/actions";
 import { getHostRatings } from "@/lib/ratings";
 import { CategoryTag } from "@/components/CategoryTag";
 import { FadeIn } from "@/components/FadeIn";
@@ -35,11 +35,14 @@ export default async function EventDetailPage({
   const event = await getEvent(id);
   if (!event) notFound();
 
-  const [attendees, ratings] = await Promise.all([getEventAttendees(id), getEventRatings(id)]);
+  const currentUser = await getCurrentUser();
+
+  const [attendees, ratings] = await Promise.all([
+    getEventAttendees(id, currentUser?.id),
+    getEventRatings(id),
+  ]);
   const peopleIds = [event.creatorId, ...attendees.map((a) => a.userId), ...ratings.map((r) => r.raterId)];
   const people = await getUsersByIds(peopleIds);
-
-  const currentUser = await getCurrentUser();
   const myAttendance = currentUser ? attendees.find((a) => a.userId === currentUser.id) : undefined;
   const isAttending = myAttendance != null;
   const isCreator = currentUser?.id === event.creatorId;
@@ -85,6 +88,14 @@ export default async function EventDetailPage({
           )}
         </FadeIn>
 
+        {event.cancelledAt && (
+          <FadeIn>
+            <div className="bg-surface border-2 border-[#8c2f2f] rounded-lg px-4 py-3 text-sm text-[#8c2f2f] font-medium">
+              This event was cancelled by the host.
+            </div>
+          </FadeIn>
+        )}
+
         <FadeIn delay={0.06}>
           <p className="whitespace-pre-wrap text-foreground/90 leading-relaxed">{event.description}</p>
         </FadeIn>
@@ -109,10 +120,26 @@ export default async function EventDetailPage({
               <Button variant="primary">Sign in to join</Button>
             </a>
           ) : isCreator ? (
-            <span className="inline-block text-sm text-muted">
-              You&apos;re hosting this event.
-            </span>
-          ) : isAttending ? (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-muted">You&apos;re hosting this event.</span>
+              {!event.cancelledAt && (
+                <>
+                  {!event.isWild && (
+                    <Link href={`/events/${event.id}/edit`}>
+                      <Button variant="secondary" className="px-3 py-1.5 text-sm">
+                        Edit
+                      </Button>
+                    </Link>
+                  )}
+                  <form action={cancelEvent.bind(null, event.id)}>
+                    <Button type="submit" variant="danger" className="px-3 py-1.5 text-sm">
+                      Cancel event
+                    </Button>
+                  </form>
+                </>
+              )}
+            </div>
+          ) : event.cancelledAt ? null : isAttending ? (
             <form action={leaveEvent.bind(null, event.id)}>
               <Button type="submit" variant="secondary">
                 Leave event
@@ -223,9 +250,18 @@ export default async function EventDetailPage({
                       "someone"
                     )}
                   </div>
-                  {a.checkInStatus === "checked-in" && (
-                    <span className="text-xs text-accent font-medium shrink-0">✓ Checked in</span>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {a.checkInStatus === "checked-in" && (
+                      <span className="text-xs text-accent font-medium">✓ Checked in</span>
+                    )}
+                    {isCreator && a.userId !== currentUser?.id && (
+                      <form action={removeAttendee.bind(null, event.id, a.userId)}>
+                        <button type="submit" className="text-xs text-[#8c2f2f] underline hover:no-underline">
+                          Remove
+                        </button>
+                      </form>
+                    )}
+                  </div>
                 </div>
                 {people[a.userId]?.bio && <div className="text-sm text-muted">{people[a.userId]?.bio}</div>}
               </StaggerItem>

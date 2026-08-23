@@ -120,6 +120,29 @@ export function ProfileStep({ state, dispatch, errors }: ProfileStepProps) {
       </div>
 
       <div>
+        <label htmlFor="dateOfBirth" className="text-sm font-medium block mb-2">
+          Date of birth
+        </label>
+        <input
+          id="dateOfBirth"
+          type="date"
+          value={state.dateOfBirth}
+          onChange={(e) => dispatch({ type: "PATCH", patch: { dateOfBirth: e.target.value } })}
+          max={new Date().toISOString().slice(0, 10)}
+          aria-describedby={errors.dateOfBirth ? "dateOfBirth-error" : "dateOfBirth-hint"}
+          className="w-full border-2 border-foreground bg-background rounded-md px-4 py-2.5 outline-none text-base"
+        />
+        <p id="dateOfBirth-hint" className="text-xs text-muted mt-1">
+          Private — never shown to other members. You must be 18 or older to use WhoWe.
+        </p>
+        {errors.dateOfBirth && (
+          <p id="dateOfBirth-error" className="text-sm text-[#8c2f2f] mt-1">
+            {errors.dateOfBirth}
+          </p>
+        )}
+      </div>
+
+      <div>
         <p className="text-sm font-medium block mb-2">
           Avatar <span className="font-normal text-muted">(optional)</span>
         </p>

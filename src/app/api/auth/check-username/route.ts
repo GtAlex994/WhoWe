@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
 import { sanitizeUsername } from "@/lib/users";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(`check-username:${getClientIp(request)}`, 30, 60_000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
+    }
+
     const { username } = await request.json();
 
     if (!username) {

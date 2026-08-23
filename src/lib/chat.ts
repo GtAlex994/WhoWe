@@ -2,6 +2,7 @@ import { db } from "@/lib/firebase-admin";
 import { getUsersByIds } from "@/lib/users-server";
 import { REACTION_EMOJI, type ReactionSummary } from "@/lib/reactions";
 import { getUserAttendances } from "@/lib/events";
+import { getBlockedUserIds } from "@/lib/moderation";
 
 export type ChatMessageDTO = {
   id: string;
@@ -67,15 +68,16 @@ export async function isEventAttendee(eventId: string, userId: string) {
 }
 
 export async function getChatMessages(eventId: string, currentUserId: string): Promise<ChatMessageDTO[]> {
-  const snap = await db
-    .collection(`events/${eventId}/messages`)
-    .orderBy("createdAt", "asc")
-    .get();
+  const [snap, blockedIds] = await Promise.all([
+    db.collection(`events/${eventId}/messages`).orderBy("createdAt", "asc").get(),
+    getBlockedUserIds(currentUserId),
+  ]);
 
-  const senderIds = snap.docs.map((d) => d.data().senderId as string);
+  const docs = snap.docs.filter((d) => !blockedIds.has(d.data().senderId as string));
+  const senderIds = docs.map((d) => d.data().senderId as string);
   const senders = await getUsersByIds(senderIds);
 
-  return snap.docs.map((d) => {
+  return docs.map((d) => {
     const data = d.data();
     const poll = data.poll as
       | { question: string; options: { id: string; label: string }[]; votes: Record<string, string> }

@@ -1,3 +1,4 @@
+import { MIN_AGE, meetsMinimumAge } from "@/lib/age";
 import type { OnboardingState } from "./onboarding-reducer";
 
 export type StepErrors = Record<string, string>;
@@ -22,6 +23,11 @@ export function validateStep(stepId: string, state: OnboardingState): { valid: b
         errors.username = "We couldn't check that username. Try again.";
       } else if (state.usernameStatus !== "available") {
         errors.username = "Enter a username.";
+      }
+      if (!state.dateOfBirth) {
+        errors.dateOfBirth = "Enter your date of birth.";
+      } else if (!meetsMinimumAge(state.dateOfBirth)) {
+        errors.dateOfBirth = `You must be at least ${MIN_AGE} to use WhoWe.`;
       }
       break;
 

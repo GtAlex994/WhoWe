@@ -7,6 +7,7 @@ import { signOut } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { calculateProfileCompletion, getMissingCompletionItems } from "@/lib/users";
+import { calculateAge } from "@/lib/age";
 import type { UserLanguage } from "@/lib/languages";
 import { resolveAvatarSrc } from "@/lib/avatars";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
@@ -14,18 +15,6 @@ import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
 function formatDate(date: Date | null): string {
   if (!date) return "";
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
-}
-
-function calculateAge(birthDate: string | null): number | null {
-  if (!birthDate) return null;
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
 }
 
 // This route always shows the signed-in user's own profile — full precision,

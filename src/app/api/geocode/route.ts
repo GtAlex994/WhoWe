@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 type NominatimResult = {
   place_id: number;
@@ -8,6 +9,11 @@ type NominatimResult = {
 };
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await checkRateLimit(`geocode:${getClientIp(request)}`, 20, 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ results: [] }, { status: 429 });
+  }
+
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
   if (q.length < 3) {
     return NextResponse.json({ results: [] });

@@ -2,7 +2,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import { pickWildCandidates } from "@/lib/wildMatch";
 import { distanceKm, CHECK_IN_RADIUS_KM } from "@/lib/geo";
-import { getBlockedUserIds } from "@/lib/moderation";
+import { getBlockedUserIds, getBlockStatus } from "@/lib/moderation";
 
 export type EventDTO = {
   id: string;
@@ -21,6 +21,7 @@ export type EventDTO = {
   ratingAvg: number | null;
   isWild: boolean;
   targetHeadcount: number | null;
+  cancelledAt: Date | null;
 };
 
 export type CheckInStatus = "checked-in" | "left";
@@ -69,15 +70,18 @@ function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO 
     ratingAvg: data.ratingCount ? data.ratingSum / data.ratingCount : null,
     isWild: data.isWild ?? false,
     targetHeadcount: data.targetHeadcount ?? null,
+    cancelledAt: data.cancelledAt?.toDate() ?? null,
   };
 }
 
 export async function listUpcomingEvents({
   category,
   q,
+  viewerId,
 }: {
   category?: string;
   q?: string;
+  viewerId?: string;
 }): Promise<EventDTO[]> {
   let query: FirebaseFirestore.Query = db
     .collection("events")
@@ -88,7 +92,7 @@ export async function listUpcomingEvents({
   }
 
   const snap = await query.orderBy("startsAt", "asc").limit(500).get();
-  let events = snap.docs.map((d) => toEventDTO(d.id, d.data()));
+  let events = snap.docs.map((d) => toEventDTO(d.id, d.data())).filter((e) => !e.cancelledAt);
 
   if (q) {
     const needle = q.toLowerCase();
@@ -98,6 +102,13 @@ export async function listUpcomingEvents({
         e.description.toLowerCase().includes(needle) ||
         e.location.toLowerCase().includes(needle),
     );
+  }
+
+  if (viewerId) {
+    const blockedIds = await getBlockedUserIds(viewerId);
+    if (blockedIds.size > 0) {
+      events = events.filter((e) => !blockedIds.has(e.creatorId));
+    }
   }
 
   return events;
@@ -123,18 +134,27 @@ export async function getEventsByIds(ids: string[]): Promise<Record<string, Even
   return result;
 }
 
-export async function getEventAttendees(eventId: string): Promise<AttendeeDTO[]> {
+export async function getEventAttendees(eventId: string, viewerId?: string): Promise<AttendeeDTO[]> {
   const snap = await db
     .collection(`events/${eventId}/attendees`)
     .orderBy("joinedAt", "asc")
     .get();
-  return snap.docs
+  let attendees = snap.docs
     .filter((d) => d.data().status === "joined")
     .map((d) => ({
       userId: d.data().userId,
       joinedAt: d.data().joinedAt.toDate(),
       checkInStatus: (d.data().checkInStatus as CheckInStatus | undefined) ?? null,
     }));
+
+  if (viewerId) {
+    const blockedIds = await getBlockedUserIds(viewerId);
+    if (blockedIds.size > 0) {
+      attendees = attendees.filter((a) => !blockedIds.has(a.userId));
+    }
+  }
+
+  return attendees;
 }
 
 export async function getAttendeeStatus(
@@ -221,6 +241,79 @@ export async function createEvent(data: {
   return eventRef.id;
 }
 
+export async function updateEvent(
+  eventId: string,
+  requesterId: string,
+  data: {
+    title: string;
+    description: string;
+    location: string;
+    latitude: number | null;
+    longitude: number | null;
+    startsAt: Date;
+    category: string;
+  },
+): Promise<void> {
+  const eventRef = db.doc(`events/${eventId}`);
+
+  await db.runTransaction(async (tx) => {
+    const eventSnap = await tx.get(eventRef);
+    if (!eventSnap.exists) throw new Error("Event not found");
+    const event = eventSnap.data()!;
+
+    if (event.creatorId !== requesterId) throw new Error("Only the host can edit this event");
+    if (event.isWild) throw new Error("Wild events can't be edited");
+    if (event.cancelledAt) throw new Error("This event has been cancelled");
+
+    tx.update(eventRef, { ...data });
+    tx.set(
+      eventRef.collection("attendees").doc(event.creatorId),
+      { eventTitle: data.title, eventStartsAt: data.startsAt, eventCategory: data.category },
+      { merge: true },
+    );
+  });
+}
+
+export async function cancelEvent(eventId: string, requesterId: string): Promise<void> {
+  const eventRef = db.doc(`events/${eventId}`);
+
+  await db.runTransaction(async (tx) => {
+    const eventSnap = await tx.get(eventRef);
+    if (!eventSnap.exists) throw new Error("Event not found");
+    const event = eventSnap.data()!;
+
+    if (event.creatorId !== requesterId) throw new Error("Only the host can cancel this event");
+    if (event.cancelledAt) return; // already cancelled, idempotent no-op
+
+    tx.update(eventRef, { cancelledAt: FieldValue.serverTimestamp() });
+  });
+}
+
+/** Host-initiated removal of an attendee (distinct from the attendee leaving on their own). */
+export async function removeAttendee(eventId: string, requesterId: string, attendeeId: string): Promise<void> {
+  if (attendeeId === requesterId) throw new Error("Use leaveEvent to remove yourself");
+
+  const eventRef = db.doc(`events/${eventId}`);
+  const attendeeRef = eventRef.collection("attendees").doc(attendeeId);
+
+  const didRemove = await db.runTransaction(async (tx) => {
+    const eventSnap = await tx.get(eventRef);
+    if (!eventSnap.exists) throw new Error("Event not found");
+    if (eventSnap.data()!.creatorId !== requesterId) throw new Error("Only the host can remove an attendee");
+
+    const attendeeSnap = await tx.get(attendeeRef);
+    if (!attendeeSnap.exists || attendeeSnap.data()!.status !== "joined") return false; // idempotent no-op
+
+    tx.delete(attendeeRef);
+    tx.update(eventRef, { attendeeCount: FieldValue.increment(-1) });
+    return true;
+  });
+
+  if (didRemove) {
+    await inviteReplacementIfNeeded(eventRef);
+  }
+}
+
 export async function createWildEventDoc(data: {
   location: string;
   latitude: number;
@@ -260,30 +353,37 @@ export async function createWildEventDoc(data: {
     });
   });
 
-  const blockedIds = await getBlockedUserIds(data.creatorId);
-  const candidateIds = await pickWildCandidates(
-    data.latitude,
-    data.longitude,
-    new Set([data.creatorId, ...blockedIds]),
-    data.targetHeadcount - 1,
-  );
+  // The event itself is already committed at this point — a failure below
+  // means some invites don't go out, not that event creation failed, so it's
+  // logged and swallowed rather than thrown back to the caller.
+  try {
+    const blockedIds = await getBlockedUserIds(data.creatorId);
+    const candidateIds = await pickWildCandidates(
+      data.latitude,
+      data.longitude,
+      new Set([data.creatorId, ...blockedIds]),
+      data.targetHeadcount - 1,
+    );
 
-  await Promise.all(
-    candidateIds.map((candidateId) =>
-      eventRef
-        .collection("attendees")
-        .doc(candidateId)
-        .set({
-          userId: candidateId,
-          status: "invited",
-          joinedAt: FieldValue.serverTimestamp(),
-          eventTitle: title,
-          eventStartsAt: data.startsAt,
-          eventCategory: "Wild",
-          eventCreatorId: data.creatorId,
-        }),
-    ),
-  );
+    await Promise.all(
+      candidateIds.map((candidateId) =>
+        eventRef
+          .collection("attendees")
+          .doc(candidateId)
+          .set({
+            userId: candidateId,
+            status: "invited",
+            joinedAt: FieldValue.serverTimestamp(),
+            eventTitle: title,
+            eventStartsAt: data.startsAt,
+            eventCategory: "Wild",
+            eventCreatorId: data.creatorId,
+          }),
+      ),
+    );
+  } catch (error) {
+    console.error(`Failed to send Wild event invites for ${eventRef.id}:`, error);
+  }
 
   return eventRef.id;
 }
@@ -326,6 +426,17 @@ async function inviteReplacementIfNeeded(eventRef: FirebaseFirestore.DocumentRef
 export async function joinEvent(eventId: string, userId: string) {
   const eventRef = db.doc(`events/${eventId}`);
   const attendeeRef = eventRef.collection("attendees").doc(userId);
+
+  const eventForPreChecks = await eventRef.get();
+  if (eventForPreChecks.exists) {
+    const preCheckData = eventForPreChecks.data()!;
+    if (preCheckData.cancelledAt) throw new Error("This event has been cancelled.");
+
+    const blockStatus = await getBlockStatus(userId, preCheckData.creatorId as string);
+    if (blockStatus !== "none") {
+      throw new Error("You can't join this event.");
+    }
+  }
 
   await db.runTransaction(async (tx) => {
     const eventSnap = await tx.get(eventRef);

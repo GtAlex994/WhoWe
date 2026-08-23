@@ -10,6 +10,7 @@ export type OnboardingState = {
   avatar: AvataaarsFeatures;
   gender: AvatarGender | null;
   bio: string;
+  dateOfBirth: string;
 
   locationLabel: string;
   locationLat: number | null;
@@ -43,6 +44,7 @@ export const initialOnboardingState: OnboardingState = {
   avatar: randomAvataaarsFeatures("male"),
   gender: null,
   bio: "",
+  dateOfBirth: "",
 
   locationLabel: "",
   locationLat: null,

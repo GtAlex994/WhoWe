@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { auth, db } from "@/lib/firebase-admin";
 import { sanitizeUsername, generateUserId } from "@/lib/users";
+import { MIN_AGE, meetsMinimumAge } from "@/lib/age";
 import { PROFICIENCY_LEVELS, type UserLanguage } from "@/lib/languages";
 
 async function generateUniqueUserId(): Promise<string> {
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
       avatar,
       gender,
       bio,
+      dateOfBirth,
       locationLabel,
       locationLat,
       locationLng,
@@ -62,6 +64,9 @@ export async function POST(request: NextRequest) {
       (gender !== "male" && gender !== "female")
     ) {
       return NextResponse.json({ error: "Missing required profile fields." }, { status: 400 });
+    }
+    if (typeof dateOfBirth !== "string" || !meetsMinimumAge(dateOfBirth)) {
+      return NextResponse.json({ error: `You must be at least ${MIN_AGE} to use WhoWe.` }, { status: 400 });
     }
     if (!locationLabel || typeof locationLat !== "number" || typeof locationLng !== "number") {
       return NextResponse.json({ error: "Choose your area to continue." }, { status: 400 });
@@ -123,6 +128,7 @@ export async function POST(request: NextRequest) {
         },
         gender,
         bio: bio?.trim() || "",
+        dateOfBirth,
         locationLabel,
         locationLat,
         locationLng,

@@ -7,7 +7,7 @@ const SESSION_COOKIE = "whowe_session";
 // Paths a signed-in-but-not-yet-onboarded user must still be able to reach —
 // the onboarding flow itself, plus sign-in/sign-out so a stuck session can
 // always be escaped, plus fully public informational pages.
-const ALLOWED_PREFIXES = ["/onboarding", "/sign-in", "/verify-email", "/community-guidelines", "/privacy"];
+const ALLOWED_PREFIXES = ["/onboarding", "/sign-in", "/community-guidelines", "/privacy", "/terms"];
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

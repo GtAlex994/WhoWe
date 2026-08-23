@@ -36,7 +36,7 @@ export default async function HomePage({
     redirect("/onboarding");
   }
 
-  const allEvents = await listUpcomingEvents({ category, q });
+  const allEvents = await listUpcomingEvents({ category, q, viewerId: currentUser?.id });
   let events = allEvents;
 
   // Filter events by user's max distance preference

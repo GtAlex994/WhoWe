@@ -20,8 +20,9 @@ export default function CommunityGuidelinesPage() {
         ))}
       </div>
       <p className="text-xs text-muted">
-        WhoWe is an early prototype. In-app reporting, blocking, and identity verification aren&apos;t live yet.
-        Treat every meetup with the same caution you&apos;d use meeting anyone new online.
+        WhoWe is an early prototype and identity verification isn&apos;t live yet. You can report or block another
+        member from their profile at any time. Treat every meetup with the same caution you&apos;d use meeting
+        anyone new online.
       </p>
     </div>
   );

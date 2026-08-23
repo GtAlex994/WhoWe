@@ -11,6 +11,9 @@ import { reserveUsername } from "@/lib/users-server";
 import {
   createEvent as createEventDoc,
   createWildEventDoc,
+  updateEvent as updateEventDb,
+  cancelEvent as cancelEventDb,
+  removeAttendee as removeAttendeeDb,
   joinEvent as joinEventDb,
   leaveEvent as leaveEventDb,
   rateEvent as rateEventDb,
@@ -22,6 +25,7 @@ import {
 } from "@/lib/events";
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 
 export async function setUserLocation(lat: number, lng: number, label: string | null) {
@@ -52,6 +56,9 @@ export async function signOut() {
 export async function createEvent(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
+
+  const rateLimit = await checkRateLimit(`create-event:${user.id}`, 10, 60 * 60 * 1000);
+  if (!rateLimit.allowed) throw new Error("You're creating events too quickly. Please try again later.");
 
   const mode = String(formData.get("mode") ?? "standard");
   const location = String(formData.get("location") ?? "").trim();
@@ -111,6 +118,62 @@ export async function createEvent(formData: FormData) {
 
   revalidatePath("/");
   redirect(`/events/${eventId}`);
+}
+
+export async function updateEvent(eventId: string, formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const location = String(formData.get("location") ?? "").trim();
+  const startsAtRaw = String(formData.get("startsAt") ?? "");
+  const category = String(formData.get("category") ?? "");
+  if (!title || !description || !location || !startsAtRaw) throw new Error("All fields are required");
+  if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
+    throw new Error("Invalid category");
+  }
+
+  const startsAt = new Date(startsAtRaw);
+  if (Number.isNaN(startsAt.getTime())) throw new Error("Invalid date");
+
+  const latRaw = formData.get("latitude");
+  const lngRaw = formData.get("longitude");
+  const latitude = latRaw ? Number(latRaw) : null;
+  const longitude = lngRaw ? Number(lngRaw) : null;
+
+  await updateEventDb(eventId, user.id, {
+    title,
+    description,
+    location,
+    latitude: Number.isFinite(latitude) ? latitude : null,
+    longitude: Number.isFinite(longitude) ? longitude : null,
+    startsAt,
+    category,
+  });
+
+  revalidatePath(`/events/${eventId}`);
+  redirect(`/events/${eventId}`);
+}
+
+export async function cancelEvent(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await cancelEventDb(eventId, user.id);
+
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/");
+  revalidatePath("/my-events");
+}
+
+export async function removeAttendee(eventId: string, attendeeId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await removeAttendeeDb(eventId, user.id, attendeeId);
+
+  revalidatePath(`/events/${eventId}`);
 }
 
 export async function joinEvent(eventId: string) {
@@ -248,6 +311,9 @@ export async function sendChatMessage(eventId: string, content: string) {
 
   const allowed = await isEventAttendee(eventId, user.id);
   if (!allowed) throw new Error("Only attendees can chat on this event");
+
+  const rateLimit = await checkRateLimit(`chat-message:${user.id}`, 30, 60 * 1000);
+  if (!rateLimit.allowed) throw new Error("You're sending messages too quickly. Please slow down.");
 
   await db.collection(`events/${eventId}/messages`).add({
     senderId: user.id,

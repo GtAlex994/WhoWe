@@ -160,10 +160,14 @@ export function SafetyPreviewStep({ state, dispatch, errors }: SafetyPreviewStep
           />
           <span>
             I agree to the{" "}
+            <Link href="/terms" className="underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
             <button type="button" onClick={() => setGuidelinesOpen(true)} className="underline">
               community guidelines
-            </button>{" "}
-            and confirm I meet WhoWe&apos;s minimum age requirement.
+            </button>
+            .
           </span>
         </label>
         {errors.termsAccepted && <p className="text-sm text-[#8c2f2f]">{errors.termsAccepted}</p>}

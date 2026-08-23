@@ -23,7 +23,14 @@ function EventCard({ event }: { event: EventDTO }) {
       href={`/events/${event.id}`}
       className="block bg-surface border-2 border-foreground rounded-lg px-4 py-3 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[4px_4px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
     >
-      <div className="font-medium">{event.title}</div>
+      <div className="flex items-center gap-2">
+        <div className="font-medium">{event.title}</div>
+        {event.cancelledAt && (
+          <span className="text-xs font-medium text-[#8c2f2f] border border-[#8c2f2f] rounded px-1.5 py-0.5">
+            Cancelled
+          </span>
+        )}
+      </div>
       <div className="text-sm text-muted mt-0.5">{formatWhen(event.startsAt)}</div>
       <div className="mt-2 flex items-center justify-between gap-2">
         <CategoryTag category={event.category} />

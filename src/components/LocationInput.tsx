@@ -4,9 +4,19 @@ import { useEffect, useRef, useState } from "react";
 
 type Suggestion = { id: number; name: string; lat: string; lon: string };
 
-export function LocationInput({ defaultValue = "" }: { defaultValue?: string }) {
+export function LocationInput({
+  defaultValue = "",
+  defaultLat = null,
+  defaultLon = null,
+}: {
+  defaultValue?: string;
+  defaultLat?: number | null;
+  defaultLon?: number | null;
+}) {
   const [value, setValue] = useState(defaultValue);
-  const [coords, setCoords] = useState<{ lat: string; lon: string } | null>(null);
+  const [coords, setCoords] = useState<{ lat: string; lon: string } | null>(
+    defaultLat != null && defaultLon != null ? { lat: String(defaultLat), lon: String(defaultLon) } : null,
+  );
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
