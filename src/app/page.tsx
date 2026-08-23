@@ -6,6 +6,7 @@ import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
 import { CategoryTag } from "@/components/CategoryTag";
+import { EventPriceBadge } from "@/components/EventPriceBadge";
 import { StarRating } from "@/components/StarRating";
 import { WildInviteBanner } from "@/components/WildInviteBanner";
 import { SearchForm } from "@/components/SearchForm";
@@ -160,7 +161,7 @@ export default async function HomePage({
             <StaggerItem key={event.id}>
               <Link
                 href={`/events/${event.id}`}
-                className="h-full flex flex-col bg-surface border-2 border-foreground rounded-lg px-5 py-4 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[5px_5px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+                className="relative h-full flex flex-col bg-surface border-2 border-foreground rounded-lg px-5 py-4 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[5px_5px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="font-display text-lg font-semibold leading-snug">{event.title}</div>
@@ -177,11 +178,14 @@ export default async function HomePage({
                     {event.attendeeCount} {event.attendeeCount === 1 ? "going" : "going"}
                   </span>
                 </div>
-                <div className="text-xs text-muted mt-1 flex items-center gap-2">
+                <div className="text-xs text-muted mt-1 flex items-center gap-2 pr-16">
                   <span>Hosted by @{creators[event.creatorId]?.username ?? "someone"}</span>
                   {hostRatings[event.creatorId] && (
                     <StarRating avg={hostRatings[event.creatorId].avg} count={hostRatings[event.creatorId].count} hideCount />
                   )}
+                </div>
+                <div className="absolute bottom-3 right-3">
+                  <EventPriceBadge isFree={event.isFree} price={event.price} />
                 </div>
               </Link>
             </StaggerItem>

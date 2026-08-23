@@ -6,6 +6,7 @@ import { CategoryTag } from "@/components/CategoryTag";
 import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { StarRating } from "@/components/StarRating";
+import { EventPriceBadge } from "@/components/EventPriceBadge";
 
 function formatWhen(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -21,7 +22,7 @@ function EventCard({ event }: { event: EventDTO }) {
   return (
     <Link
       href={`/events/${event.id}`}
-      className="block bg-surface border-2 border-foreground rounded-lg px-4 py-3 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[4px_4px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+      className="relative block bg-surface border-2 border-foreground rounded-lg px-4 py-3 shadow-[3px_3px_0_0_var(--foreground)] hover:shadow-[4px_4px_0_0_var(--foreground)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
     >
       <div className="flex items-center gap-2">
         <div className="font-medium">{event.title}</div>
@@ -32,9 +33,12 @@ function EventCard({ event }: { event: EventDTO }) {
         )}
       </div>
       <div className="text-sm text-muted mt-0.5">{formatWhen(event.startsAt)}</div>
-      <div className="mt-2 flex items-center justify-between gap-2">
+      <div className="mt-2 flex items-center justify-between gap-2 pr-14">
         <CategoryTag category={event.category} />
         {event.ratingCount > 0 && <StarRating avg={event.ratingAvg!} count={event.ratingCount} hideCount />}
+      </div>
+      <div className="absolute bottom-3 right-3">
+        <EventPriceBadge isFree={event.isFree} price={event.price} />
       </div>
     </Link>
   );
