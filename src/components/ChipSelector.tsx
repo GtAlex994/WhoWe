@@ -10,6 +10,8 @@ interface ChipSelectorProps {
   maxIsSoft?: boolean;
   /** Items rendered disabled (e.g. already chosen in a mutually-exclusive list elsewhere). */
   disabledItems?: string[];
+  /** Called instead of toggling when a disabled item is clicked (e.g. move it over from the other list). */
+  onDisabledItemClick?: (item: string) => void;
   /** Selecting this item clears all others; selecting any other item deselects it. */
   exclusiveItem?: string;
   ariaLabel?: string;
@@ -23,11 +25,15 @@ export function ChipSelector({
   max,
   maxIsSoft = false,
   disabledItems = [],
+  onDisabledItemClick,
   exclusiveItem,
   ariaLabel,
 }: ChipSelectorProps) {
   const toggleItem = (item: string) => {
-    if (disabledItems.includes(item)) return;
+    if (disabledItems.includes(item)) {
+      onDisabledItemClick?.(item);
+      return;
+    }
 
     let updated: string[];
     if (selected.includes(item)) {
@@ -54,11 +60,11 @@ export function ChipSelector({
               key={item}
               type="button"
               aria-pressed={isSelected}
-              disabled={isDisabled}
               onClick={() => toggleItem(item)}
+              title={isDisabled && onDisabledItemClick ? `Move "${item}" here instead` : undefined}
               className={`px-3 py-1.5 rounded-md text-sm font-medium border-2 inline-flex items-center gap-1.5 transition-all ${
                 isDisabled
-                  ? "border-foreground/20 bg-surface text-muted cursor-not-allowed opacity-50"
+                  ? "border-foreground/20 bg-surface text-muted opacity-50 hover:opacity-75"
                   : isSelected
                     ? "border-foreground bg-primary text-primary-foreground shadow-[1px_1px_0_0_var(--foreground)] translate-x-[1px] translate-y-[1px]"
                     : "border-foreground bg-surface text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:bg-background hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px"

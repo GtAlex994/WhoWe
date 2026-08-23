@@ -9,6 +9,7 @@ import { getUnreadEventIds } from "@/lib/chat";
 import { Dock } from "@/components/Dock";
 import { ConditionalHeader } from "@/components/ConditionalHeader";
 import { MainContent } from "@/components/MainContent";
+import { BackButton } from "@/components/BackButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <span className="hidden sm:inline text-sm text-muted">It starts with who, it becomes we.</span>
             </div>
           </ConditionalHeader>
+          <BackButton />
           <MainContent>{children}</MainContent>
           <Dock signedIn={!!user} hasUnreadChats={hasUnreadChats} />
         </MotionConfig>

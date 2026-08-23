@@ -51,6 +51,15 @@ export function InterestsActivitiesStep({ state, dispatch, errors }: InterestsAc
                     selected={state.interests}
                     onChange={(interests) => dispatch({ type: "PATCH", patch: { interests } })}
                     disabledItems={state.dislikes}
+                    onDisabledItemClick={(item) =>
+                      dispatch({
+                        type: "PATCH",
+                        patch: {
+                          dislikes: state.dislikes.filter((i) => i !== item),
+                          interests: [...state.interests, item],
+                        },
+                      })
+                    }
                     ariaLabel={category.name}
                   />
                 </div>
@@ -81,6 +90,15 @@ export function InterestsActivitiesStep({ state, dispatch, errors }: InterestsAc
             selected={state.dislikes}
             onChange={(dislikes) => dispatch({ type: "PATCH", patch: { dislikes } })}
             disabledItems={state.interests}
+            onDisabledItemClick={(item) =>
+              dispatch({
+                type: "PATCH",
+                patch: {
+                  interests: state.interests.filter((i) => i !== item),
+                  dislikes: [...state.dislikes, item],
+                },
+              })
+            }
             ariaLabel="Things to avoid"
           />
         )}

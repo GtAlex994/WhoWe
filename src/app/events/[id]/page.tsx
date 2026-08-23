@@ -7,7 +7,6 @@ import { getCurrentUser } from "@/lib/session";
 import { joinEvent, leaveEvent, rateEvent, cancelEvent, removeAttendee } from "@/app/actions";
 import { getHostRatings } from "@/lib/ratings";
 import { CategoryTag } from "@/components/CategoryTag";
-import { BackButton } from "@/components/BackButton";
 import { FadeIn } from "@/components/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/StaggerList";
 import { Button } from "@/components/Button";
@@ -83,12 +82,7 @@ export default async function EventDetailPage({
           : null;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10">
-      <FadeIn className="mb-6">
-        <BackButton />
-      </FadeIn>
-
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
       <div className="flex flex-col gap-6">
         <FadeIn>
           <div className="flex items-center gap-3 flex-wrap">
@@ -309,7 +303,6 @@ export default async function EventDetailPage({
           </StaggerList>
         </div>
         </FadeIn>
-      </div>
       </div>
     </div>
   );

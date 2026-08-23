@@ -62,6 +62,10 @@ export function InterestsForm({ categories, defaultInterests, defaultDislikes }:
               selected={interests}
               onChange={setInterests}
               disabledItems={dislikes}
+              onDisabledItemClick={(item) => {
+                setDislikes((prev) => prev.filter((i) => i !== item));
+                setInterests((prev) => [...prev, item]);
+              }}
               ariaLabel={category.name}
             />
           </div>
@@ -85,6 +89,10 @@ export function InterestsForm({ categories, defaultInterests, defaultDislikes }:
               selected={dislikes}
               onChange={setDislikes}
               disabledItems={interests}
+              onDisabledItemClick={(item) => {
+                setInterests((prev) => prev.filter((i) => i !== item));
+                setDislikes((prev) => [...prev, item]);
+              }}
               ariaLabel={`${category.name} — avoid`}
             />
           </div>
