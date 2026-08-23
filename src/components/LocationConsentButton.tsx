@@ -7,6 +7,8 @@ type Status = "idle" | "explaining" | "requesting" | "denied" | "error";
 
 type LocationConsentButtonProps = {
   onLocated: (label: string, lat: number, lng: number) => void;
+  /** Skip the explanatory blurb and wrapping box — just the button. */
+  compact?: boolean;
 };
 
 /**
@@ -14,7 +16,7 @@ type LocationConsentButtonProps = {
  * browser permission prompt fires, and only requests geolocation after an
  * explicit second click. Never surfaces raw lat/lng to the user.
  */
-export function LocationConsentButton({ onLocated }: LocationConsentButtonProps) {
+export function LocationConsentButton({ onLocated, compact = false }: LocationConsentButtonProps) {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -53,15 +55,21 @@ export function LocationConsentButton({ onLocated }: LocationConsentButtonProps)
   }
 
   if (status === "idle" || status === "requesting") {
+    const button = (
+      <Button type="button" variant="secondary" onClick={requestLocation} disabled={status === "requesting"}>
+        {status === "requesting" ? "Requesting…" : "Share my location"}
+      </Button>
+    );
+
+    if (compact) return button;
+
     return (
       <div className="rounded-md border-2 border-foreground/20 bg-surface p-3 space-y-2">
         <p className="text-xs text-muted">
           We&apos;ll only use this once, right now, to suggest your suburb — you can always type it manually instead.
           We show your suburb/city to others, never your exact coordinates, and you can change or remove it any time.
         </p>
-        <Button type="button" variant="secondary" onClick={requestLocation} disabled={status === "requesting"}>
-          {status === "requesting" ? "Requesting…" : "Share my location"}
-        </Button>
+        {button}
       </div>
     );
   }

@@ -102,6 +102,7 @@ export function BasicProfileForm({ user }: { user: UserDTO }) {
         />
         <p className="text-xs text-muted mt-1 mb-3">Your approximate location helps others find local events</p>
         <LocationConsentButton
+          compact
           onLocated={(label, lat, lng) => {
             setLocationLabel(label);
             setLocationLat(lat);
