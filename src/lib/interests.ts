@@ -4,6 +4,14 @@ export type InterestCategory = {
   items: string[];
 };
 
+// Each item below appears in exactly one category — five concepts (Hiking,
+// Nature, Road Trips, Festivals, Fashion) used to be listed under two
+// categories at once, which meant getAllInterests() returned duplicate
+// entries and the same selectable value showed up twice in the picker UI.
+// The chosen canonical category is a judgment call, not a rule; the stored
+// value (the plain string) is unchanged either way, so this reshuffle is
+// safe for existing users' saved selections.
+
 export const INTEREST_CATEGORIES: InterestCategory[] = [
   {
     name: "Sport",
@@ -12,7 +20,6 @@ export const INTEREST_CATEGORIES: InterestCategory[] = [
       "Gym",
       "Running",
       "Walking",
-      "Hiking",
       "Cycling",
       "Swimming",
       "Soccer",
@@ -63,7 +70,6 @@ export const INTEREST_CATEGORIES: InterestCategory[] = [
       "Camping",
       "Beach",
       "Nature",
-      "Road Trips",
       "Bushwalking",
       "Kayaking",
       "Stargazing",
@@ -176,7 +182,6 @@ export const INTEREST_CATEGORIES: InterestCategory[] = [
       "Dinner Groups",
       "Casual Hangouts",
       "Parties",
-      "Festivals",
       "Markets",
       "Volunteering",
       "Networking",
@@ -190,10 +195,8 @@ export const INTEREST_CATEGORIES: InterestCategory[] = [
       "Wellness",
       "Meditation",
       "Gardening",
-      "Nature",
       "Mindfulness",
       "Sustainability",
-      "Fashion",
       "Cars",
       "Motorcycles",
       "Drinking",
