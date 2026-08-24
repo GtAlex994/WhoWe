@@ -163,57 +163,112 @@ export type ProfileCompletionInput = Pick<
   "name" | "avatar" | "username" | "locationLabel" | "interests" | "activities" | "languages" | "socialStyle" | "lookingFor" | "bio"
 >;
 
+export type CompletionSection = {
+  id: string;
+  /** Checklist heading, e.g. on /profile/complete. */
+  title: string;
+  /** Lowercase noun phrase for "Add X, Y to get better matches" copy. */
+  missingLabel: string;
+  weight: number;
+  completed: boolean;
+  editLink: string;
+};
+
 /**
- * The single source of truth for profile completion — used both for a saved
- * UserDTO and for in-progress onboarding wizard state (which shares these
- * field names/shapes), so the live progress bar and the saved-profile
- * percentage never disagree.
+ * The single source of truth for profile completion — every consumer (the
+ * numeric percentage, the "add X to get better matches" prompt, and the
+ * /profile/complete checklist) derives from this same list of sections, so
+ * they can't disagree about which sections are actually done. Also doubles
+ * as the source for in-progress onboarding wizard state, which shares these
+ * field names/shapes, so the live progress bar matches the saved percentage.
  *
- * Weighting: basic+avatar 20%, location 15%, interests 15%, activities 15%,
- * languages 10%, social preferences 10% (5% required group size + up to 5%
- * prorated across the 3 optional fields), goals 10%, bio 5%. A run that fills
- * every *required* onboarding field (skipping all optional ones) scores 90%,
- * comfortably above the 60% floor.
+ * Weights sum to 100: basic+avatar 20%, location 15%, interests 15%,
+ * activities 15%, languages 10%, social preferences 10%, goals 10%, bio 5%.
+ * A run that fills every *required* onboarding field (skipping bio, the only
+ * fully optional one) scores 95%, comfortably above the 60% floor.
  */
+export function getCompletionSections(user: ProfileCompletionInput): CompletionSection[] {
+  return [
+    {
+      id: "basic",
+      title: "Basic details",
+      missingLabel: "your basic profile",
+      weight: 20,
+      completed: !!(user.name?.length > 0 && user.username && user.avatar),
+      editLink: "/profile/edit/basic",
+    },
+    {
+      id: "location",
+      title: "Your area",
+      missingLabel: "your area",
+      weight: 15,
+      completed: !!user.locationLabel,
+      editLink: "/profile/edit/basic",
+    },
+    {
+      id: "interests",
+      title: "Interests",
+      missingLabel: "interests",
+      weight: 15,
+      completed: user.interests.length >= 3,
+      editLink: "/profile/edit/interests",
+    },
+    {
+      id: "activities",
+      title: "Activities",
+      missingLabel: "activities",
+      weight: 15,
+      completed: user.activities.length >= 3,
+      editLink: "/profile/edit/activities",
+    },
+    {
+      id: "languages",
+      title: "Languages",
+      missingLabel: "languages",
+      weight: 10,
+      completed: user.languages.length > 0 && user.languages.every((l) => !!l.proficiency),
+      editLink: "/profile/edit/languages",
+    },
+    {
+      id: "social",
+      title: "Social style",
+      missingLabel: "social preferences",
+      weight: 10,
+      completed: !!user.socialStyle.groupSize,
+      editLink: "/profile/edit/social-style",
+    },
+    {
+      id: "goals",
+      title: "Goals",
+      missingLabel: "goals",
+      weight: 10,
+      completed: user.lookingFor.length >= 1,
+      editLink: "/profile/edit/goals",
+    },
+    {
+      id: "bio",
+      title: "Bio",
+      missingLabel: "a bio",
+      weight: 5,
+      completed: !!user.bio,
+      editLink: "/profile/edit/basic",
+    },
+  ];
+}
+
 export function calculateProfileCompletion(user: ProfileCompletionInput): number {
-  let score = 0;
-
-  if (user.name?.length > 0 && user.username && user.avatar) score += 20;
-  if (user.locationLabel) score += 15;
-  if (user.interests.length >= 3) score += 15;
-  if (user.activities.length >= 3) score += 15;
-  if (user.languages.length > 0 && user.languages.every((l) => !!l.proficiency)) score += 10;
-
-  if (user.socialStyle.groupSize) {
-    score += 5;
-    const optionalFilled = [user.socialStyle.personality, user.socialStyle.planning, user.socialStyle.pace.length > 0].filter(
-      Boolean,
-    ).length;
-    score += (optionalFilled / 3) * 5;
-  }
-
-  if (user.lookingFor.length >= 1) score += 10;
-  if (user.bio) score += 5;
-
-  return Math.round(score);
+  return getCompletionSections(user).reduce((sum, s) => sum + (s.completed ? s.weight : 0), 0);
 }
 
 /**
- * The specific sections still missing from a profile, in the same order/logic
- * as calculateProfileCompletion — used to keep "complete your profile" copy
- * accurate instead of pointing at a fixed, possibly-already-done set of fields.
+ * The specific sections still missing from a profile — used to keep
+ * "complete your profile" copy accurate instead of pointing at a fixed,
+ * possibly-already-done set of fields.
  */
 export function getMissingCompletionItems(user: ProfileCompletionInput): string[] {
-  const missing: string[] = [];
-  if (!(user.name?.length > 0 && user.username && user.avatar)) missing.push("your basic profile");
-  if (!user.locationLabel) missing.push("your area");
-  if (user.interests.length < 3) missing.push("interests");
-  if (user.activities.length < 3) missing.push("activities");
-  if (!(user.languages.length > 0 && user.languages.every((l) => !!l.proficiency))) missing.push("languages");
-  if (!user.socialStyle.groupSize) missing.push("social preferences");
-  if (user.lookingFor.length < 1) missing.push("goals");
-  if (!user.bio) missing.push("a bio");
-  return missing;
+  return getCompletionSections(user)
+    .filter((s) => !s.completed)
+    .map((s) => s.missingLabel);
 }
 
 export const MIN_MAX_DISTANCE_KM = 5;

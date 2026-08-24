@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { calculateProfileCompletion } from "@/lib/users";
+import { calculateProfileCompletion, getCompletionSections } from "@/lib/users";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 
@@ -10,55 +10,7 @@ export default async function ProfileCompletePage() {
   if (!user) redirect("/sign-in");
 
   const completion = calculateProfileCompletion(user);
-
-  const sections = [
-    {
-      title: "Basic details",
-      completed: !!user.name && user.name.trim().length > 0,
-      icon: "✓",
-      link: "/profile/edit/basic",
-    },
-    {
-      title: "Interests",
-      completed: Array.isArray(user.interests) && user.interests.length > 0,
-      icon: "❤️",
-      link: "/profile/edit/interests",
-      label: "Add interests",
-    },
-    {
-      title: "Activities",
-      completed: Array.isArray(user.activities) && user.activities.length > 0,
-      icon: "⚡",
-      link: "/profile/edit/activities",
-      label: "Add activities",
-    },
-    {
-      title: "Languages",
-      completed: Array.isArray(user.languages) && user.languages.length > 0,
-      icon: "🗣️",
-      link: "/profile/edit/languages",
-      label: "Add languages",
-    },
-    {
-      title: "Social style",
-      completed: !!(
-        user.socialStyle?.groupSize ||
-        user.socialStyle?.planning ||
-        user.socialStyle?.pace
-      ),
-      icon: "👥",
-      link: "/profile/edit/social-style",
-      label: "Set preferences",
-    },
-    {
-      title: "Goals",
-      completed: Array.isArray(user.lookingFor) && user.lookingFor.length > 0,
-      icon: "🔎",
-      link: "/profile/edit/goals",
-      label: "Set goals",
-    },
-  ];
-
+  const sections = getCompletionSections(user);
   const completedCount = sections.filter((s) => s.completed).length;
 
   return (
@@ -100,8 +52,8 @@ export default async function ProfileCompletePage() {
           <div className="space-y-2">
             {sections.map((section) => (
               <Link
-                key={section.link}
-                href={section.link}
+                key={section.id}
+                href={section.editLink}
                 className="flex items-center justify-between p-4 border-2 border-foreground rounded-md hover:bg-surface transition-colors group"
               >
                 <div className="flex items-center gap-3">
@@ -113,7 +65,7 @@ export default async function ProfileCompletePage() {
                   </div>
                 </div>
                 <span className="text-sm text-muted group-hover:text-foreground transition-colors">
-                  {section.completed ? "Done" : section.label || "Complete"}
+                  {section.completed ? "Done" : "Complete"}
                 </span>
               </Link>
             ))}
