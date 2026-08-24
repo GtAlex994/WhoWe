@@ -12,9 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Copied into the functions bundle by the predeploy hook (firebase.json).
-    "functions/.next/**",
-    "functions/public/**",
   ]),
 ]);
 

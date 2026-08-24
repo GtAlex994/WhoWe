@@ -17,10 +17,6 @@
 /.next/
 /out/
 
-# copied into the functions bundle by the predeploy hook (firebase.json)
-/functions/.next/
-/functions/public/
-
 # production
 /build
 

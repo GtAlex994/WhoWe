@@ -2,50 +2,5 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "runtime": "nodejs20",
-      "predeploy": [
-        "bash scripts/prepare-functions-build.sh"
-      ],
-      "ignore": [
-        "/node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-functions-debug.log"
-      ]
-    }
-  ],
-  "hosting": {
-    "site": "whowe-2026",
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**",
-      "src/**",
-      ".next/**",
-      "functions/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "function": "api"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|css|js|woff|woff2)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
-        ]
-      }
-    ]
   }
 }
