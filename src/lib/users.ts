@@ -71,8 +71,6 @@ export type UserDTO = {
   hostRatingSum: number;
   hostRatingCount: number;
   hostRatingAvg: number | null;
-  eventsAttended: number;
-  eventsHosted: number;
 
   // Things the user would rather avoid — mutually exclusive with `interests`.
   dislikes: string[];
@@ -133,8 +131,6 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
     hostRatingSum: data.hostRatingSum ?? 0,
     hostRatingCount: data.hostRatingCount ?? 0,
     hostRatingAvg: data.hostRatingCount ? data.hostRatingSum / data.hostRatingCount : null,
-    eventsAttended: data.eventsAttended ?? 0,
-    eventsHosted: data.eventsHosted ?? 0,
     // Older docs stored `dislikes` as a comma-joined string; coerce to an array.
     dislikes: Array.isArray(data.dislikes) ? data.dislikes : [],
     onboardingConsent: {
@@ -247,8 +243,6 @@ export type PublicProfileDTO = {
   hostRatingSum: number;
   hostRatingCount: number;
   hostRatingAvg: number | null;
-  eventsAttended: number;
-  eventsHosted: number;
 };
 
 /**
@@ -276,8 +270,6 @@ export function toPublicProfile(user: UserDTO): PublicProfileDTO {
     hostRatingSum: user.hostRatingSum,
     hostRatingCount: user.hostRatingCount,
     hostRatingAvg: user.hostRatingAvg,
-    eventsAttended: user.eventsAttended,
-    eventsHosted: user.eventsHosted,
   };
 }
 

@@ -31,8 +31,6 @@ function makeUser(overrides: Partial<UserDTO> = {}): UserDTO {
       locationLng: 144.98,
       hostRatingSum: 20,
       hostRatingCount: 4,
-      eventsAttended: 3,
-      eventsHosted: 1,
       createdAt: { toDate: () => new Date("2026-01-01") },
     }),
     ...overrides,
@@ -126,8 +124,6 @@ describe("toPublicProfile", () => {
     expect(profile.interests).toEqual(["Hiking", "Coffee"]);
     expect(profile.activities).toEqual(["Board Games"]);
     expect(profile.languages).toEqual([{ language: "English", proficiency: "Fluent" }]);
-    expect(profile.eventsAttended).toBe(3);
-    expect(profile.eventsHosted).toBe(1);
     expect(profile.hostRatingAvg).toBe(5);
   });
 });

@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getUserByUsername } from "@/lib/users-server";
 import { toPublicProfile } from "@/lib/users";
+import { getUserEventStats } from "@/lib/events";
 import { FadeIn } from "@/components/FadeIn";
 import { resolveAvatarSrc } from "@/lib/avatars";
 import { ColorInitialsAvatar } from "@/components/ColorInitialsAvatar";
@@ -56,6 +57,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
   }
 
   const profile = toPublicProfile(targetUser);
+  const stats = await getUserEventStats(targetUser.id);
 
   return (
     <div className="w-full pb-20 lg:pb-0">
@@ -106,11 +108,11 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
 
             <div className="grid grid-cols-3 gap-3 mt-8">
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
-                <div className="text-2xl font-semibold">{profile.eventsAttended}</div>
+                <div className="text-2xl font-semibold">{stats.eventsJoined}</div>
                 <div className="text-xs text-muted mt-1">Events joined</div>
               </div>
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
-                <div className="text-2xl font-semibold">{profile.eventsHosted}</div>
+                <div className="text-2xl font-semibold">{stats.eventsHosted}</div>
                 <div className="text-xs text-muted mt-1">Events hosted</div>
               </div>
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">

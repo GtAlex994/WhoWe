@@ -7,6 +7,7 @@ import { signOut } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { calculateProfileCompletion, getMissingCompletionItems } from "@/lib/users";
+import { getUserEventStats } from "@/lib/events";
 import { calculateAge } from "@/lib/age";
 import type { UserLanguage } from "@/lib/languages";
 import { resolveAvatarSrc } from "@/lib/avatars";
@@ -32,6 +33,7 @@ export default async function ProfilePage() {
   const profileCompletion = calculateProfileCompletion(user);
   const missingCompletionItems = getMissingCompletionItems(user);
   const age = calculateAge(user.dateOfBirth);
+  const stats = await getUserEventStats(user.id);
 
   return (
     <div className="w-full pb-20 lg:pb-0">
@@ -123,11 +125,11 @@ export default async function ProfilePage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mt-8">
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
-                <div className="text-2xl font-semibold">{user.eventsAttended}</div>
+                <div className="text-2xl font-semibold">{stats.eventsJoined}</div>
                 <div className="text-xs text-muted mt-1">Events joined</div>
               </div>
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
-                <div className="text-2xl font-semibold">{user.eventsHosted}</div>
+                <div className="text-2xl font-semibold">{stats.eventsHosted}</div>
                 <div className="text-xs text-muted mt-1">Events hosted</div>
               </div>
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
@@ -364,11 +366,11 @@ export default async function ProfilePage() {
               </div>
               <div className="flex items-center justify-between pb-3 border-b-2 border-foreground">
                 <span className="text-sm">Events attended</span>
-                <span className="text-sm font-medium">{user.eventsAttended}</span>
+                <span className="text-sm font-medium">{stats.eventsAttended}</span>
               </div>
               <div className="flex items-center justify-between pb-3 border-b-2 border-foreground">
                 <span className="text-sm">Events hosted</span>
-                <span className="text-sm font-medium">{user.eventsHosted}</span>
+                <span className="text-sm font-medium">{stats.eventsHosted}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Would meet again</span>

@@ -56,7 +56,41 @@ export type AttendanceDTO = {
   eventCreatorId: string;
   status: AttendanceStatus;
   lastReadAt: Date | null;
+  checkInStatus: CheckInStatus | null;
 };
+
+/**
+ * The single source of truth for a user's event activity numbers — used by
+ * the profile page (own and public), settings, and anywhere else that shows
+ * "hosting"/"attending" counts, so they can't disagree with each other again.
+ * `eventsHosted`/`eventsJoined` mirror exactly what the My Events page lists
+ * (every joined attendance, including past and cancelled events — those stay
+ * "yours", they just get a Cancelled badge there); `eventsAttended` is the
+ * distinct, narrower count of events actually checked into.
+ */
+export type UserEventStats = {
+  eventsHosted: number;
+  eventsJoined: number;
+  eventsAttended: number;
+};
+
+export async function getUserEventStats(userId: string): Promise<UserEventStats> {
+  const joined = (await getUserAttendances(userId)).filter((a) => a.status === "joined");
+
+  let eventsHosted = 0;
+  let eventsJoined = 0;
+  let eventsAttended = 0;
+  for (const a of joined) {
+    if (a.eventCreatorId === userId) {
+      eventsHosted++;
+    } else {
+      eventsJoined++;
+    }
+    if (a.checkInStatus) eventsAttended++;
+  }
+
+  return { eventsHosted, eventsJoined, eventsAttended };
+}
 
 function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO {
   return {
@@ -207,6 +241,7 @@ export async function getUserAttendances(userId: string): Promise<AttendanceDTO[
       eventCreatorId: data.eventCreatorId,
       status: (data.status ?? "joined") as AttendanceStatus,
       lastReadAt: data.lastReadAt?.toDate() ?? null,
+      checkInStatus: (data.checkInStatus as CheckInStatus | undefined) ?? null,
     };
   });
 }

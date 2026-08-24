@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/session";
-import { getUserAttendances } from "@/lib/events";
+import { getUserEventStats } from "@/lib/events";
 import { deleteAccount, signOut, updateNotificationPreference } from "@/app/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
@@ -31,12 +30,7 @@ export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const [hostingCountSnap, attendances] = await Promise.all([
-    db.collection("events").where("creatorId", "==", user.id).count().get(),
-    getUserAttendances(user.id),
-  ]);
-  const hostingCount = hostingCountSnap.data().count;
-  const attendingCount = attendances.filter((a) => a.status === "joined").length;
+  const stats = await getUserEventStats(user.id);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
@@ -142,11 +136,11 @@ export default async function SettingsPage() {
           <div className="flex flex-col gap-3 mt-4">
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-muted">Hosting</span>
-              <span className="text-2xl font-display font-semibold">{hostingCount}</span>
+              <span className="text-2xl font-display font-semibold">{stats.eventsHosted}</span>
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-muted">Attending</span>
-              <span className="text-2xl font-display font-semibold">{attendingCount}</span>
+              <span className="text-2xl font-display font-semibold">{stats.eventsJoined}</span>
             </div>
           </div>
           <Link href="/profile" className="inline-block text-sm text-primary hover:underline mt-5">
