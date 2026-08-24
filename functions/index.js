@@ -1,11 +1,12 @@
 import express from "express";
 import { onRequest } from "firebase-functions/v2/https";
-import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { createRequire } from "module";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const standaloneDir = path.join(__dirname, ".next/standalone");
 
 // Initialize Express app
 const app = express();
@@ -17,13 +18,13 @@ app.use((req, res, next) => {
 });
 
 // Serve static files from .next/static
-const staticDir = path.join(__dirname, "../.next/standalone/.next/static");
+const staticDir = path.join(standaloneDir, ".next/static");
 if (fs.existsSync(staticDir)) {
   app.use("/_next/static", express.static(staticDir));
 }
 
 // Serve public files
-const publicDir = path.join(__dirname, "../public");
+const publicDir = path.join(__dirname, "public");
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
 }
@@ -33,44 +34,49 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// For all other routes, we need to handle server-side rendering
-// Since we're using standalone mode, we'll use the built server
-let nextServer = null;
+// The generated `.next/standalone/server.js` binds its own HTTP listener
+// (via Next's `startServer`) rather than exporting a request handler, so it
+// can't be `require`d/`import`ed into an Express route directly. Instead we
+// build a handler the same way Next's own custom-server docs describe:
+// instantiate `next()` programmatically against the standalone build, using
+// the standalone bundle's own copy of `next` (matches the exact version/deps
+// it was compiled against) and the exact build config Next wrote out for
+// this purpose in `required-server-files.json`.
+let handlerPromise = null;
 
-async function initNextServer() {
-  if (nextServer) return nextServer;
+function getNextHandler() {
+  if (handlerPromise) return handlerPromise;
 
-  try {
-    // Try to use the standalone server if available
-    const serverPath = path.join(__dirname, "../.next/standalone/server.js");
-    if (fs.existsSync(serverPath)) {
-      console.log("Using Next.js standalone server");
-      // Import and return the handler
-      const { default: handler } = await import(serverPath);
-      return handler;
-    }
-  } catch (error) {
-    console.error("Error initializing Next.js server:", error);
-  }
+  handlerPromise = (async () => {
+    const requiredServerFiles = JSON.parse(
+      fs.readFileSync(path.join(standaloneDir, ".next/required-server-files.json"), "utf8"),
+    );
+    const standaloneRequire = createRequire(path.join(standaloneDir, "package.json"));
+    const next = standaloneRequire("next");
 
-  return null;
+    const nextApp = next({
+      dev: false,
+      dir: standaloneDir,
+      conf: requiredServerFiles.config,
+    });
+    const handle = nextApp.getRequestHandler();
+    await nextApp.prepare();
+    return handle;
+  })();
+
+  return handlerPromise;
 }
 
 // Handle all other requests with Next.js
 app.all("*", async (req, res) => {
   try {
-    const server = await initNextServer();
-    if (server) {
-      return server(req, res);
-    } else {
-      // Fallback: serve a simple message
-      res.status(500).json({
-        error: "Next.js server not initialized. Please rebuild the application.",
-      });
-    }
+    const handle = await getNextHandler();
+    return handle(req, res);
   } catch (error) {
     console.error("Error handling request:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
