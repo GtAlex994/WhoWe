@@ -12,7 +12,7 @@
         "bash scripts/prepare-functions-build.sh"
       ],
       "ignore": [
-        "node_modules",
+        "/node_modules",
         ".git",
         "firebase-debug.log",
         "firebase-functions-debug.log"
