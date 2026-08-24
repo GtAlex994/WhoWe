@@ -551,8 +551,9 @@ export async function leaveEvent(eventId: string, userId: string) {
  * Checks a joined attendee in, but only if their submitted coordinates are
  * within CHECK_IN_RADIUS_KM of the event's venue — verified server-side so
  * the "I'm here" status other attendees see actually means something. The
- * one-time location point is stored on the attendee doc only (never exposed
- * to other users) as a "last known location" — not continuously tracked.
+ * one-time coordinates are used only for this in-memory distance check and
+ * are never written anywhere — only the resulting checked-in/out status is
+ * persisted, so no location data outlives the request.
  */
 export async function checkIntoEvent(
   eventId: string,
@@ -583,7 +584,6 @@ export async function checkIntoEvent(
     checkInStatus: "checked-in",
     checkedInAt: FieldValue.serverTimestamp(),
     checkedOutAt: null,
-    lastKnownLocation: { lat, lng, capturedAt: FieldValue.serverTimestamp() },
   });
 
   return { ok: true };
