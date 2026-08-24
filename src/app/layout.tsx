@@ -51,10 +51,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/" className="shrink-0">
                 <Image src="/WhoWe.png" alt="WhoWe" width={120} height={40} priority />
               </Link>
+              <BackButton />
               <span className="hidden sm:inline text-sm text-muted">It starts with who, it becomes we.</span>
             </div>
           </ConditionalHeader>
-          <BackButton />
           <MainContent>{children}</MainContent>
           <Dock signedIn={!!user} hasUnreadChats={hasUnreadChats} />
         </MotionConfig>
