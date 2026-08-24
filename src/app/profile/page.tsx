@@ -353,8 +353,14 @@ export default async function ProfilePage() {
                 </div>
               )}
               <div className="flex items-center justify-between pb-3 border-b-2 border-foreground">
-                <span className="text-sm">Phone verified</span>
-                <span className="text-xs text-muted">No</span>
+                <span className="text-sm">{user.phoneVerifiedAt ? "✓ Phone verified" : "Phone verified"}</span>
+                {user.phoneVerifiedAt ? (
+                  <span className="text-xs text-muted">Yes</span>
+                ) : (
+                  <Link href="/profile/edit/phone" className="text-xs text-primary underline hover:text-primary/80">
+                    Verify
+                  </Link>
+                )}
               </div>
               <div className="flex items-center justify-between pb-3 border-b-2 border-foreground">
                 <span className="text-sm">Events attended</span>

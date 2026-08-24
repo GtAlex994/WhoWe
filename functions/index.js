@@ -76,6 +76,10 @@ app.all("*", async (req, res) => {
 
 // Export the Cloud Function
 export const api = onRequest(
-  { memory: "512MB", timeoutSeconds: 60, secrets: ["RESEND_API_KEY", "ADMIN_EMAILS"] },
+  {
+    memory: "512MB",
+    timeoutSeconds: 60,
+    secrets: ["RESEND_API_KEY", "ADMIN_EMAILS", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER"],
+  },
   app
 );

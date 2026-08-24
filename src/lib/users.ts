@@ -6,6 +6,8 @@ export type UserDTO = {
   name: string;
   email: string | null;
   emailVerifiedAt: Date | null;
+  phone: string | null;
+  phoneVerifiedAt: Date | null;
   bio: string | null;
   avatar: {
     style: string;
@@ -87,6 +89,8 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
     name: data.name ?? "",
     email: data.email ?? null,
     emailVerifiedAt: data.emailVerifiedAt?.toDate() ?? null,
+    phone: data.phone ?? null,
+    phoneVerifiedAt: data.phoneVerifiedAt?.toDate() ?? null,
     bio: data.bio ?? null,
     avatar: data.avatar ?? null,
     gender: data.gender ?? null,
