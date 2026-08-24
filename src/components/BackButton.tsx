@@ -15,7 +15,7 @@ export function BackButton() {
       type="button"
       onClick={() => router.back()}
       aria-label="Back"
-      className="shrink-0 flex items-center justify-center h-9 w-9 rounded-full border-2 border-foreground bg-surface shadow-[2px_2px_0_0_var(--foreground)] hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px transition-all"
+      className="shrink-0 flex items-center justify-center h-9 w-9 rounded-full border-2 border-foreground bg-surface shadow-[2px_2px_0_0_var(--foreground)] hover:shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-x-px hover:-translate-y-px transition-all sm:fixed sm:top-24 sm:left-4 sm:z-40 sm:h-10 sm:w-10"
     >
       <ChevronLeft size={20} />
     </button>

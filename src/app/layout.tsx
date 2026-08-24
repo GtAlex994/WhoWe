@@ -48,10 +48,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <MotionConfig reducedMotion="user">
           <ConditionalHeader>
             <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-3">
+              <BackButton />
               <Link href="/" className="shrink-0">
                 <Image src="/WhoWe.png" alt="WhoWe" width={120} height={40} priority />
               </Link>
-              <BackButton />
               <span className="hidden sm:inline text-sm text-muted">It starts with who, it becomes we.</span>
             </div>
           </ConditionalHeader>
