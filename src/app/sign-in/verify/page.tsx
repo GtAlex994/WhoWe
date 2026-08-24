@@ -1,24 +1,22 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
+import { ApiError, friendlyAuthError, parseJsonResponse } from "@/lib/auth-errors";
 
 type Status = "working" | "needs-email" | "error";
 
 export default function VerifyPage() {
-  const router = useRouter();
   const [status, setStatus] = useState<Status>("working");
   const [error, setError] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
 
   useEffect(() => {
     complete(window.localStorage.getItem("emailForSignIn"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function complete(email: string | null) {
@@ -41,12 +39,12 @@ export default function VerifyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
-      if (!res.ok) throw new Error("session exchange failed");
-      const { needsOnboarding } = await res.json();
-      window.location.href = needsOnboarding ? "/onboarding" : "/";
-    } catch {
+      const data = await parseJsonResponse(res);
+      if (!res.ok) throw new ApiError(data.error || "Couldn't start a session. Try again.");
+      window.location.href = data.needsOnboarding ? "/onboarding" : "/";
+    } catch (err) {
       setStatus("error");
-      setError("That link is invalid or has expired. Request a new one.");
+      setError(friendlyAuthError(err, "That link is invalid or has expired. Request a new one."));
     }
   }
 

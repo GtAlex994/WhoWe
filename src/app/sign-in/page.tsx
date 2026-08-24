@@ -1,26 +1,16 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { sendSignInLinkToEmail, signInWithCustomToken } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
+import { ApiError, friendlyAuthError, parseJsonResponse } from "@/lib/auth-errors";
 
 type Method = "link" | "code";
 type View = "form" | "link-sent" | "code-sent";
 
-async function parseJsonResponse(res: Response) {
-  const text = await res.text();
-  try {
-    return text ? JSON.parse(text) : {};
-  } catch {
-    throw new Error("Something went wrong. Please try again.");
-  }
-}
-
 export default function SignInPage() {
-  const router = useRouter();
   const [method, setMethod] = useState<Method>("link");
   const [view, setView] = useState<View>("form");
   const [email, setEmail] = useState("");
@@ -30,6 +20,7 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function requestSignIn() {
+    if (sending) return;
     setError(null);
     setSending(true);
     try {
@@ -47,15 +38,20 @@ export default function SignInPage() {
           body: JSON.stringify({ email }),
         });
         const data = await parseJsonResponse(res);
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) {
+          throw new ApiError(
+            data.error || `Couldn't send that code. Check the email address and try again.`,
+          );
+        }
         setCode("");
         setView("code-sent");
       }
     } catch (err) {
       setError(
-        err instanceof Error && err.message
-          ? err.message
-          : `Couldn't send that ${method === "link" ? "link" : "code"}. Check the email address and try again.`,
+        friendlyAuthError(
+          err,
+          `Couldn't send that ${method === "link" ? "link" : "code"}. Check the email address and try again.`,
+        ),
       );
     } finally {
       setSending(false);
@@ -69,6 +65,7 @@ export default function SignInPage() {
 
   async function handleVerify(e: FormEvent) {
     e.preventDefault();
+    if (verifying) return;
     setError(null);
     setVerifying(true);
     try {
@@ -78,7 +75,7 @@ export default function SignInPage() {
         body: JSON.stringify({ email, code }),
       });
       const data = await parseJsonResponse(res);
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new ApiError(data.error || "That code doesn't match.");
 
       const credential = await signInWithCustomToken(auth, data.customToken);
       const idToken = await credential.user.getIdToken();
@@ -88,10 +85,14 @@ export default function SignInPage() {
         body: JSON.stringify({ idToken }),
       });
       const { needsOnboarding, error: sessionError } = await parseJsonResponse(sessionRes);
-      if (!sessionRes.ok) throw new Error(sessionError ?? "Couldn't start a session. Try again.");
+      if (!sessionRes.ok) throw new ApiError(sessionError || "Couldn't start a session. Try again.");
+      // Hard navigation, not router.push: guarantees the fresh session cookie
+      // is picked up and nothing under the old /sign-in route stays mounted.
       window.location.href = needsOnboarding ? "/onboarding" : "/";
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : "That code doesn't match.");
+      // Code is intentionally left in the field here — a recoverable failure
+      // (network blip, our own server hiccup) shouldn't make the user retype it.
+      setError(friendlyAuthError(err, "We couldn't verify the code. Please try again."));
     } finally {
       setVerifying(false);
     }

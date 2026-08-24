@@ -18,10 +18,15 @@ type ProfileStepProps = {
 
 export function ProfileStep({ state, dispatch, errors }: ProfileStepProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
   const [personalizeOpen, setPersonalizeOpen] = useState(false);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    // Cancel any check still in flight for a previous value of the field —
+    // without this, a slow response for an old username can land after a
+    // newer one and repaint a stale "available"/"taken" badge.
+    controllerRef.current?.abort();
 
     const username = state.username.trim();
     if (username.length < 3) {
@@ -31,21 +36,26 @@ export function ProfileStep({ state, dispatch, errors }: ProfileStepProps) {
 
     dispatch({ type: "PATCH", patch: { usernameStatus: "checking" } });
     debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      controllerRef.current = controller;
       try {
         const res = await fetch("/api/auth/check-username", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username }),
+          signal: controller.signal,
         });
         const data = await res.json();
-        dispatch({ type: "PATCH", patch: { usernameStatus: data.available ? "available" : "taken" } });
-      } catch {
+        dispatch({ type: "PATCH", patch: { usernameStatus: res.ok && data.available ? "available" : res.ok ? "taken" : "error" } });
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         dispatch({ type: "PATCH", patch: { usernameStatus: "error" } });
       }
     }, 400);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      controllerRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-check when the username text changes
   }, [state.username]);
