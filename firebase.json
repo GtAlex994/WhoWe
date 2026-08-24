@@ -9,7 +9,7 @@
       "codebase": "default",
       "runtime": "nodejs20",
       "predeploy": [
-        "bash -c 'rm -rf functions/.next functions/public && mkdir -p functions/.next/standalone/.next && cp -r .next/standalone/. functions/.next/standalone/ && cp -r .next/static functions/.next/standalone/.next/static && cp -r public functions/public'"
+        "bash scripts/prepare-functions-build.sh"
       ],
       "ignore": [
         "node_modules",
