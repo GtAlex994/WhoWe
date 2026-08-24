@@ -79,7 +79,10 @@ export const api = onRequest(
   {
     memory: "512MB",
     timeoutSeconds: 60,
-    secrets: ["RESEND_API_KEY", "ADMIN_EMAILS", "CLICKSEND_USERNAME", "CLICKSEND_API_KEY", "CLICKSEND_SENDER_ID"],
+    // CLICKSEND_SENDER_ID isn't listed here (yet) — Cloud Functions v2 requires
+    // every declared secret to already exist in Secret Manager at deploy time,
+    // and it's optional/unset. Add it back once it's actually configured.
+    secrets: ["RESEND_API_KEY", "ADMIN_EMAILS", "CLICKSEND_USERNAME", "CLICKSEND_API_KEY"],
   },
   app
 );
