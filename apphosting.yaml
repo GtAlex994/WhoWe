@@ -33,3 +33,15 @@ env:
     secret: RESEND_API_KEY
     availability:
       - RUNTIME
+  - variable: ADMIN_EMAILS
+    secret: ADMIN_EMAILS
+    availability:
+      - RUNTIME
+  - variable: CLICKSEND_USERNAME
+    secret: CLICKSEND_USERNAME
+    availability:
+      - RUNTIME
+  - variable: CLICKSEND_API_KEY
+    secret: CLICKSEND_API_KEY
+    availability:
+      - RUNTIME
