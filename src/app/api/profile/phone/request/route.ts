@@ -62,33 +62,35 @@ export async function POST(request: NextRequest) {
 
     const code = randomInt(100000, 1000000).toString();
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
-    const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
-    const fromNumber = process.env.TWILIO_FROM_NUMBER?.trim();
-    if (!accountSid || !authToken || !fromNumber) {
-      console.error("Twilio env vars are not set");
+    const clickSendUsername = process.env.CLICKSEND_USERNAME?.trim();
+    const clickSendApiKey = process.env.CLICKSEND_API_KEY?.trim();
+    const clickSendSenderId = process.env.CLICKSEND_SENDER_ID?.trim();
+    if (!clickSendUsername || !clickSendApiKey) {
+      console.error("ClickSend env vars are not set");
       throw new Error("SMS service not configured");
     }
 
-    const twilioRes = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          From: fromNumber,
-          To: phone,
-          Body: `Your WhoWe verification code is ${code}. It expires in 10 minutes.`,
-        }),
+    const clickSendRes = await fetch("https://rest.clicksend.com/v3/sms/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${clickSendUsername}:${clickSendApiKey}`).toString("base64")}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        messages: [
+          {
+            to: phone,
+            body: `Your WhoWe verification code is ${code}. It expires in 10 minutes.`,
+            source: "whowe",
+            ...(clickSendSenderId ? { from: clickSendSenderId } : {}),
+          },
+        ],
+      }),
+    });
 
-    if (!twilioRes.ok) {
-      const detail = await twilioRes.text();
-      console.error("Twilio API error:", detail);
+    const clickSendData = await clickSendRes.json().catch(() => null);
+    if (!clickSendRes.ok || clickSendData?.response_code !== "SUCCESS") {
+      console.error("ClickSend API error:", clickSendData);
       return NextResponse.json(
         { error: "We couldn't send the verification code. Please check the phone number and try again." },
         { status: 400 },

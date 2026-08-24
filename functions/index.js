@@ -79,7 +79,7 @@ export const api = onRequest(
   {
     memory: "512MB",
     timeoutSeconds: 60,
-    secrets: ["RESEND_API_KEY", "ADMIN_EMAILS", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER"],
+    secrets: ["RESEND_API_KEY", "ADMIN_EMAILS", "CLICKSEND_USERNAME", "CLICKSEND_API_KEY", "CLICKSEND_SENDER_ID"],
   },
   app
 );
