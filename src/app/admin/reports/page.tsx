@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/session";
 import { isAdminEmail } from "@/lib/admin";
 import { getUsersByIds } from "@/lib/users-server";
 import { resolveReport, reopenReport } from "@/app/admin-actions";
+import { appendAuditLog } from "@/lib/audit-log";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import type { UserDTO } from "@/lib/users";
@@ -76,6 +78,8 @@ export default async function AdminReportsPage() {
   if (!user) redirect("/sign-in");
   if (!isAdminEmail(user.email)) redirect("/");
 
+  await appendAuditLog({ caseId: null, action: "report_viewed", actorId: user.id, subjectId: null });
+
   const snap = await db.collection("reports").orderBy("createdAt", "desc").limit(200).get();
   const reports: Report[] = snap.docs.map((d) => {
     const data = d.data();
@@ -106,6 +110,9 @@ export default async function AdminReportsPage() {
         <p className="text-muted mt-1.5">
           {openReports.length} open · {resolvedReports.length} resolved
         </p>
+        <Link href="/admin/audit-log" className="text-sm text-primary hover:underline mt-1.5 inline-block">
+          View safeguarding audit log →
+        </Link>
       </FadeIn>
 
       <div className="space-y-3">

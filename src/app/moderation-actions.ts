@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getUserByUsername } from "@/lib/users-server";
 import { blockDocRef } from "@/lib/moderation";
 import { REPORT_CATEGORIES } from "@/lib/moderation-constants";
+import { appendAuditLog } from "@/lib/audit-log";
 
 async function resolveTarget(formData: FormData) {
   const user = await getCurrentUser();
@@ -48,7 +49,8 @@ export async function reportUser(formData: FormData) {
   const context = String(formData.get("context") ?? "").trim().slice(0, 1000);
   if (!REPORT_CATEGORIES.includes(category)) throw new Error("Choose a reason for the report.");
 
-  await db.collection("reports").add({
+  const reportRef = db.collection("reports").doc();
+  await reportRef.set({
     reporterId: user.id,
     targetType: "user",
     targetId: target.id,
@@ -56,5 +58,12 @@ export async function reportUser(formData: FormData) {
     context: context || null,
     status: "open",
     createdAt: FieldValue.serverTimestamp(),
+  });
+  await appendAuditLog({
+    caseId: reportRef.id,
+    action: "report_created",
+    actorId: user.id,
+    subjectId: target.id,
+    detail: category,
   });
 }

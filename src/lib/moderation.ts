@@ -1,6 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import type { ShieldMatch } from "@/lib/chat-shield";
+import { appendAuditLog } from "@/lib/audit-log";
 
 export type BlockStatus = "none" | "blockedByViewer" | "blockedByTarget";
 
@@ -59,7 +60,8 @@ export async function flagMessage(params: {
   matches: ShieldMatch[];
 }): Promise<void> {
   const { eventId, senderId, severity, content, matches } = params;
-  await db.collection("reports").add({
+  const reportRef = db.collection("reports").doc();
+  await reportRef.set({
     reporterId: null,
     targetType: "message",
     targetId: senderId,
@@ -70,5 +72,12 @@ export async function flagMessage(params: {
     severity,
     status: "open",
     createdAt: FieldValue.serverTimestamp(),
+  });
+  await appendAuditLog({
+    caseId: reportRef.id,
+    action: "report_auto_flagged",
+    actorId: null,
+    subjectId: senderId,
+    detail: `severity=${severity} categories=${matches.map((m) => m.category).join(",")}`,
   });
 }
