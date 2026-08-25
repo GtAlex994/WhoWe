@@ -4,7 +4,7 @@ import { pickWildCandidates } from "@/lib/wildMatch";
 import { distanceKm, CHECK_IN_RADIUS_KM } from "@/lib/geo";
 import { getBlockedUserIds, getBlockStatus } from "@/lib/moderation";
 import { getUsersByIds } from "@/lib/users-server";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, escapeHtml } from "@/lib/email";
 import { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy } from "@/lib/event-policies";
 import { stopSafetyMode } from "@/lib/safety";
 import { appendAuditLog } from "@/lib/audit-log";
@@ -479,7 +479,7 @@ export async function createWildEventDoc(data: {
         return sendEmail({
           to: candidate.email,
           subject: "You've been invited to a Wild meetup",
-          html: `<p>You've been invited to a Wild meetup near ${data.location} on ${data.startsAt.toLocaleString()}.</p><p><a href="https://whowe.live/">Respond on WhoWe</a></p>`,
+          html: `<p>You've been invited to a Wild meetup near ${escapeHtml(data.location)} on ${data.startsAt.toLocaleString()}.</p><p><a href="https://whowe.live/">Respond on WhoWe</a></p>`,
         });
       }),
     );
@@ -645,7 +645,7 @@ async function notifyTrustedContactOfCheckIn(eventId: string, userId: string, ev
   await sendEmail({
     to: trustedContact.email,
     subject: `${displayName} checked in safely on WhoWe`,
-    html: `<p>${displayName} just checked in at "${eventTitle}" on WhoWe and asked us to let you know.</p>`,
+    html: `<p>${displayName} just checked in at "${escapeHtml(eventTitle)}" on WhoWe and asked us to let you know.</p>`,
   });
   await appendAuditLog({ caseId: null, action: "trusted_contact_notified", actorId: null, subjectId: userId, detail: `checkin:${eventId}` });
 }

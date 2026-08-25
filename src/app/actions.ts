@@ -32,7 +32,7 @@ import { getUsersByIds } from "@/lib/users-server";
 import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, escapeHtml } from "@/lib/email";
 import { scanMessage } from "@/lib/chat-shield";
 import { flagMessage } from "@/lib/moderation";
 import {
@@ -249,7 +249,7 @@ export async function cancelEvent(eventId: string) {
         return sendEmail({
           to: person.email,
           subject: `${event.title} was cancelled`,
-          html: `<p>The host cancelled "${event.title}", which you were going to attend.</p>`,
+          html: `<p>The host cancelled "${escapeHtml(event.title)}", which you were going to attend.</p>`,
         });
       }),
     );
@@ -283,7 +283,7 @@ export async function joinEvent(eventId: string) {
       await sendEmail({
         to: host.email,
         subject: `@${user.username} joined ${event.title}`,
-        html: `<p><strong>@${user.username}</strong> just joined your event "${event.title}".</p><p><a href="https://whowe.live/events/${eventId}">View the event</a></p>`,
+        html: `<p><strong>@${escapeHtml(user.username ?? "")}</strong> just joined your event "${escapeHtml(event.title)}".</p><p><a href="https://whowe.live/events/${eventId}">View the event</a></p>`,
       });
     }
   }

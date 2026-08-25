@@ -1,7 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import { appendAuditLog } from "@/lib/audit-log";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, escapeHtml } from "@/lib/email";
 
 // Safety Mode: an explicit, off-by-default, per-event opt-in that privately
 // records the attendee's own last-known location while active. It is NOT
@@ -178,7 +178,7 @@ export async function runCheckoutReminderSweep(): Promise<{ remindersSent: numbe
         await sendEmail({
           to: email,
           subject: "Did you check out?",
-          html: `<p>You checked in to <strong>${eventTitle}</strong> a while ago and haven't checked out yet.</p><p>Are you safe? <a href="https://whowe.live/events/${eventId}">Check out</a> when you're able to.</p>`,
+          html: `<p>You checked in to <strong>${escapeHtml(eventTitle)}</strong> a while ago and haven't checked out yet.</p><p>Are you safe? <a href="https://whowe.live/events/${eventId}">Check out</a> when you're able to.</p>`,
         });
       }
       await doc.ref.update({ checkoutReminderSentAt: FieldValue.serverTimestamp() });
@@ -197,7 +197,7 @@ export async function runCheckoutReminderSweep(): Promise<{ remindersSent: numbe
           await sendEmail({
             to: trustedContact.email,
             subject: `${label} hasn't checked out on WhoWe`,
-            html: `<p>${label} checked in to <strong>${eventTitle}</strong> on WhoWe and hasn't checked out. They listed you as a trusted contact for this event. You may want to check in on them.</p><p>WhoWe has not contacted emergency services.</p>`,
+            html: `<p>${label} checked in to <strong>${escapeHtml(eventTitle)}</strong> on WhoWe and hasn't checked out. They listed you as a trusted contact for this event. You may want to check in on them.</p><p>WhoWe has not contacted emergency services.</p>`,
           });
           await appendAuditLog({
             caseId: null,
