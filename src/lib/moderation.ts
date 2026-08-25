@@ -1,4 +1,6 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
+import type { ShieldMatch } from "@/lib/chat-shield";
 
 export type BlockStatus = "none" | "blockedByViewer" | "blockedByTarget";
 
@@ -40,4 +42,33 @@ export async function getBlockedByUser(userId: string): Promise<{ id: string; bl
   return snap.docs
     .map((d) => ({ id: d.data().blockedId as string, blockedAt: d.data().createdAt?.toDate() ?? new Date(0) }))
     .sort((a, b) => b.blockedAt.getTime() - a.blockedAt.getTime());
+}
+
+/**
+ * Records a chat message the shield blocked from sending, into the same
+ * `reports` collection human-submitted reports use — so it shows up in the
+ * existing admin queue instead of a parallel one nobody looks at.
+ * `reporterId` is null (nobody reported this, the system flagged it);
+ * `targetId` is the sender, since that's who a moderator would act on.
+ */
+export async function flagMessage(params: {
+  eventId: string;
+  senderId: string;
+  severity: "medium" | "high";
+  content: string;
+  matches: ShieldMatch[];
+}): Promise<void> {
+  const { eventId, senderId, severity, content, matches } = params;
+  await db.collection("reports").add({
+    reporterId: null,
+    targetType: "message",
+    targetId: senderId,
+    eventId,
+    category: severity === "high" ? "Harassment" : "Sharing private information",
+    context: `Auto-flagged (${matches.map((m) => m.category).join(", ")}): "${content.slice(0, 500)}"`,
+    source: "auto",
+    severity,
+    status: "open",
+    createdAt: FieldValue.serverTimestamp(),
+  });
 }

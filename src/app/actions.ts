@@ -30,6 +30,8 @@ import { CATEGORIES } from "@/lib/categories";
 import { isEventAttendee } from "@/lib/chat";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
+import { scanMessage } from "@/lib/chat-shield";
+import { flagMessage } from "@/lib/moderation";
 
 
 export async function setUserLocation(lat: number, lng: number, label: string | null) {
@@ -386,18 +388,45 @@ export async function rateEvent(eventId: string, formData: FormData) {
   revalidatePath("/profile");
 }
 
-export async function sendChatMessage(eventId: string, content: string) {
+export type SendChatMessageResult =
+  | { status: "sent" }
+  | { status: "confirm"; reasons: string[] }
+  | { status: "blocked"; severity: "medium" | "high"; reasons: string[] };
+
+/**
+ * `acknowledged` lets the caller resend a message that came back with
+ * status "confirm" (a low-severity shield warning like a bare link) without
+ * re-triggering the same warning — it does NOT bypass a "blocked" result,
+ * which has no override.
+ */
+export async function sendChatMessage(
+  eventId: string,
+  content: string,
+  options?: { acknowledged?: boolean },
+): Promise<SendChatMessageResult> {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
   const trimmed = content.trim();
-  if (!trimmed) return;
+  if (!trimmed) return { status: "sent" };
 
   const allowed = await isEventAttendee(eventId, user.id);
   if (!allowed) throw new Error("Only attendees can chat on this event");
 
   const rateLimit = await checkRateLimit(`chat-message:${user.id}`, 30, 60 * 1000);
   if (!rateLimit.allowed) throw new Error("You're sending messages too quickly. Please slow down.");
+
+  const scan = scanMessage(trimmed);
+  const reasons = scan.matches.map((m) => m.reason);
+
+  if (scan.severity === "medium" || scan.severity === "high") {
+    await flagMessage({ eventId, senderId: user.id, severity: scan.severity, content: trimmed, matches: scan.matches });
+    return { status: "blocked", severity: scan.severity, reasons };
+  }
+
+  if (scan.severity === "low" && !options?.acknowledged) {
+    return { status: "confirm", reasons };
+  }
 
   await db.collection(`events/${eventId}/messages`).add({
     senderId: user.id,
@@ -408,6 +437,7 @@ export async function sendChatMessage(eventId: string, content: string) {
 
   revalidatePath(`/chats/${eventId}`);
   revalidatePath("/chats");
+  return { status: "sent" };
 }
 
 export async function markChatRead(eventId: string) {

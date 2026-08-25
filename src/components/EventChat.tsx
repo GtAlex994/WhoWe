@@ -140,6 +140,12 @@ export function EventChat({
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [sending, setSending] = useState(false);
+  // Reasons from the pre-send shield: confirmNotice is a soft warning the
+  // user can send past ("Send anyway"); blockedNotice has no override — the
+  // message wasn't sent and the user needs to edit it. Both clear as soon as
+  // the draft changes, since they describe a scan of the text as it was.
+  const [confirmNotice, setConfirmNotice] = useState<string[] | null>(null);
+  const [blockedNotice, setBlockedNotice] = useState<string[] | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -160,19 +166,45 @@ export function EventChat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  async function handleSend(e: FormEvent) {
-    e.preventDefault();
+  async function refreshMessages() {
+    const res = await fetch(`/api/events/${eventId}/messages`);
+    if (res.ok) setMessages((await res.json()).messages);
+  }
+
+  async function submitDraft(acknowledged: boolean) {
     const content = draft.trim();
     if (!content || sending) return;
     setSending(true);
-    setDraft("");
     try {
-      await sendChatMessage(eventId, content);
-      const res = await fetch(`/api/events/${eventId}/messages`);
-      if (res.ok) setMessages((await res.json()).messages);
+      const result = await sendChatMessage(eventId, content, { acknowledged });
+      if (result.status === "sent") {
+        setDraft("");
+        setConfirmNotice(null);
+        setBlockedNotice(null);
+        await refreshMessages();
+      } else if (result.status === "confirm") {
+        setConfirmNotice(result.reasons);
+        setBlockedNotice(null);
+      } else {
+        setBlockedNotice(result.reasons);
+        setConfirmNotice(null);
+      }
     } finally {
       setSending(false);
     }
+  }
+
+  async function handleSend(e: FormEvent) {
+    e.preventDefault();
+    await submitDraft(false);
+  }
+
+  function handleDraftChange(value: string) {
+    setDraft(value);
+    // A prior warning/block described a scan of the old text — it no longer
+    // applies once the user starts editing.
+    if (confirmNotice) setConfirmNotice(null);
+    if (blockedNotice) setBlockedNotice(null);
   }
 
   async function handleCreatePoll(e: FormEvent) {
@@ -362,6 +394,39 @@ export function EventChat({
           )}
         </AnimatePresence>
 
+        {blockedNotice && (
+          <div className="mb-2 rounded-md border-2 border-[#8c2f2f] bg-[#8c2f2f]/5 px-3 py-2 text-sm">
+            <p className="font-medium text-[#8c2f2f]">This message wasn&apos;t sent</p>
+            <p className="text-muted mt-0.5">
+              {blockedNotice[0]} For everyone&apos;s safety, keep contact details and links inside WhoWe
+              chat — edit your message to continue.
+            </p>
+          </div>
+        )}
+
+        {confirmNotice && (
+          <div className="mb-2 rounded-md border-2 border-foreground bg-surface px-3 py-2 text-sm">
+            <p>{confirmNotice[0]} Send it anyway?</p>
+            <div className="flex items-center gap-3 mt-1.5">
+              <button
+                type="button"
+                onClick={() => submitDraft(true)}
+                disabled={sending}
+                className="text-primary font-medium hover:underline cursor-pointer disabled:opacity-50"
+              >
+                Send anyway
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmNotice(null)}
+                className="text-muted hover:text-foreground cursor-pointer"
+              >
+                Edit message
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSend} className="flex items-center gap-2">
           <button
             type="button"
@@ -375,7 +440,7 @@ export function EventChat({
           </button>
           <input
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => handleDraftChange(e.target.value)}
             placeholder="Say something…"
             className="flex-1 border-2 border-foreground bg-surface rounded-md px-3 py-2 text-sm outline-none min-w-0"
           />
@@ -388,6 +453,9 @@ export function EventChat({
             <Send size={18} />
           </button>
         </form>
+        <p className="text-[11px] text-muted mt-1.5 text-center">
+          Messages are screened for shared contact info and unsafe content.
+        </p>
       </div>
     </div>
   );

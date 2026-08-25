@@ -10,13 +10,15 @@ import type { UserDTO } from "@/lib/users";
 
 type Report = {
   id: string;
-  reporterId: string;
+  reporterId: string | null;
   targetType: string;
   targetId: string;
   category: string;
   context: string | null;
   status: "open" | "resolved";
   createdAt: Date | null;
+  source: "user" | "auto";
+  severity: string | null;
 };
 
 function formatDate(date: Date | null) {
@@ -25,7 +27,7 @@ function formatDate(date: Date | null) {
 }
 
 function ReportCard({ report, users }: { report: Report; users: Record<string, UserDTO> }) {
-  const reporter = users[report.reporterId];
+  const reporter = report.reporterId ? users[report.reporterId] : null;
   const target = users[report.targetId];
 
   return (
@@ -34,12 +36,26 @@ function ReportCard({ report, users }: { report: Report; users: Record<string, U
         <span className="text-xs font-medium uppercase tracking-wide text-primary">{report.category}</span>
         <span className="text-xs text-muted">{formatDate(report.createdAt)}</span>
       </div>
-      <p className="text-sm">
-        <span className="text-muted">Reported:</span>{" "}
-        {target ? <span className="font-medium">@{target.username}</span> : <span className="italic text-muted">deleted user</span>}{" "}
-        <span className="text-muted">by</span>{" "}
-        {reporter ? <span className="font-medium">@{reporter.username}</span> : <span className="italic text-muted">deleted user</span>}
-      </p>
+      {report.source === "auto" ? (
+        <p className="text-sm">
+          <span className="text-muted">Auto-flagged message from</span>{" "}
+          {target ? <span className="font-medium">@{target.username}</span> : <span className="italic text-muted">deleted user</span>}
+          {report.severity && (
+            <span
+              className={`ml-2 text-xs font-medium uppercase ${report.severity === "high" ? "text-[#8c2f2f]" : "text-muted"}`}
+            >
+              {report.severity} severity
+            </span>
+          )}
+        </p>
+      ) : (
+        <p className="text-sm">
+          <span className="text-muted">Reported:</span>{" "}
+          {target ? <span className="font-medium">@{target.username}</span> : <span className="italic text-muted">deleted user</span>}{" "}
+          <span className="text-muted">by</span>{" "}
+          {reporter ? <span className="font-medium">@{reporter.username}</span> : <span className="italic text-muted">deleted user</span>}
+        </p>
+      )}
       {report.context && <p className="text-sm text-muted whitespace-pre-wrap">{report.context}</p>}
       <form action={report.status === "open" ? resolveReport : reopenReport}>
         <input type="hidden" name="reportId" value={report.id} />
@@ -65,17 +81,19 @@ export default async function AdminReportsPage() {
     const data = d.data();
     return {
       id: d.id,
-      reporterId: data.reporterId,
+      reporterId: data.reporterId ?? null,
       targetType: data.targetType,
       targetId: data.targetId,
       category: data.category,
       context: data.context ?? null,
       status: data.status === "resolved" ? "resolved" : "open",
       createdAt: data.createdAt?.toDate() ?? null,
+      source: data.source === "auto" ? "auto" : "user",
+      severity: data.severity ?? null,
     };
   });
 
-  const userIds = Array.from(new Set(reports.flatMap((r) => [r.reporterId, r.targetId])));
+  const userIds = Array.from(new Set(reports.flatMap((r) => [r.reporterId, r.targetId]).filter((id): id is string => !!id)));
   const users = await getUsersByIds(userIds);
 
   const openReports = reports.filter((r) => r.status === "open");
