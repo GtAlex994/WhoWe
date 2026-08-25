@@ -175,7 +175,12 @@ export function buildAvataaarsUrl(features: AvataaarsFeatures): string {
     top: features.top,
     hairColor: stripHash(features.hairColor),
     skinColor: stripHash(features.skinColor),
-    clothes: features.clothes,
+    // DiceBear's avataaars schema calls this query param "clothing", not
+    // "clothes" — the internal field/type is still named `clothes`
+    // throughout this app, only the wire param sent to the API differs.
+    // Using the wrong key doesn't error, it's just silently ignored, which
+    // is why picking a different clothing item never changed the preview.
+    clothing: features.clothes,
     clothesColor: stripHash(features.clothesColor),
   });
 
