@@ -34,6 +34,13 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
 import { scanMessage } from "@/lib/chat-shield";
 import { flagMessage } from "@/lib/moderation";
+import {
+  startSafetyMode as startSafetyModeDb,
+  stopSafetyMode as stopSafetyModeDb,
+  updateSafetyModeLocation as updateSafetyModeLocationDb,
+  getSafetyModeStatus as getSafetyModeStatusDb,
+  triggerSafetyHelp,
+} from "@/lib/safety";
 
 
 export async function setUserLocation(lat: number, lng: number, label: string | null) {
@@ -313,6 +320,46 @@ export async function checkOutOfEvent(eventId: string) {
   await checkOutOfEventDb(eventId, user.id);
 
   revalidatePath(`/events/${eventId}`);
+}
+
+export async function startSafetyMode(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await startSafetyModeDb(eventId, user.id);
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function stopSafetyMode(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await stopSafetyModeDb(eventId, user.id);
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function updateSafetyModeLocation(eventId: string, lat: number, lng: number, accuracyMeters: number | null) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error("Invalid coordinates");
+
+  const result = await updateSafetyModeLocationDb(eventId, user.id, lat, lng, accuracyMeters);
+  if (!result.ok) throw new Error(result.error);
+}
+
+export async function getSafetyModeStatus(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  return getSafetyModeStatusDb(eventId, user.id);
+}
+
+export async function requestSafetyHelp(eventId: string) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await triggerSafetyHelp(eventId, user.id);
 }
 
 export async function acceptWildInvite(eventId: string) {

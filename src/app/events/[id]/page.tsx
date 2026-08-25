@@ -20,6 +20,8 @@ import { Button } from "@/components/Button";
 import { StarRating } from "@/components/StarRating";
 import { EventRatingForm } from "@/components/EventRatingForm";
 import { EventCheckIn } from "@/components/EventCheckIn";
+import { SafetyModeControl } from "@/components/SafetyModeControl";
+import { getSafetyModeStatus } from "@/lib/safety";
 import { distanceKm, formatDistance } from "@/lib/geo";
 
 function formatWhen(date: Date) {
@@ -60,6 +62,9 @@ export default async function EventDetailPage({
       ? await getAttendeeStatus(event.id, currentUser.id)
       : null;
   const isPendingInvite = myInviteStatus === "invited";
+
+  const mySafetyStatus =
+    isAttending && currentUser ? await getSafetyModeStatus(event.id, currentUser.id) : null;
 
   const isGenderEligible =
     event.genderPolicy === "open" ||
@@ -276,6 +281,16 @@ export default async function EventDetailPage({
               checkInStatus={myAttendance?.checkInStatus ?? null}
               venueLat={event.latitude}
               venueLng={event.longitude}
+            />
+          </FadeIn>
+        )}
+
+        {isAttending && !event.cancelledAt && mySafetyStatus && (
+          <FadeIn delay={0.09}>
+            <SafetyModeControl
+              eventId={event.id}
+              initialActive={mySafetyStatus.active}
+              isCheckedIn={myAttendance?.checkInStatus === "checked-in"}
             />
           </FadeIn>
         )}

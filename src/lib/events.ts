@@ -6,6 +6,7 @@ import { getBlockedUserIds, getBlockStatus } from "@/lib/moderation";
 import { getUsersByIds } from "@/lib/users-server";
 import { sendEmail } from "@/lib/email";
 import { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy } from "@/lib/event-policies";
+import { stopSafetyMode } from "@/lib/safety";
 
 export { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy };
 
@@ -613,6 +614,11 @@ export async function checkOutOfEvent(eventId: string, userId: string): Promise<
     checkInStatus: "left",
     checkedOutAt: FieldValue.serverTimestamp(),
   });
+
+  // A safe checkout is the good-path signal to stop Safety Mode and delete
+  // its stored location immediately, rather than waiting on its retention
+  // window. No-op if Safety Mode wasn't on for this event.
+  await stopSafetyMode(eventId, userId);
 }
 
 export async function acceptWildInvite(eventId: string, userId: string) {
