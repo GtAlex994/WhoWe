@@ -35,6 +35,24 @@ export default async function ProfilePage() {
   const age = calculateAge(user.dateOfBirth);
   const stats = await getUserEventStats(user.id);
 
+  const languageChips = (user.languages ?? []).map((lang: UserLanguage, idx: number) => ({
+    key: `${lang.language}-${idx}`,
+    label: `${lang.language} · ${lang.proficiency}`,
+  }));
+
+  const socialStyleChips: string[] = [];
+  if (user.socialStyle.groupSize) socialStyleChips.push(`Group size: ${user.socialStyle.groupSize}`);
+  if (user.socialStyle.planning) socialStyleChips.push(`Planning: ${user.socialStyle.planning}`);
+  if (user.socialStyle.pace.length > 0) socialStyleChips.push(`Vibe: ${user.socialStyle.pace.join(", ")}`);
+  if (user.socialStyle.personality) socialStyleChips.push(`Personality: ${user.socialStyle.personality}`);
+
+  const habitsChips: string[] = [];
+  if (user.habits.smoking.status) habitsChips.push(`Smoking: ${user.habits.smoking.status}`);
+  if (user.habits.vaping.status) habitsChips.push(`Vaping: ${user.habits.vaping.status}`);
+  if (user.habits.alcohol.frequency) habitsChips.push(`Alcohol: ${user.habits.alcohol.frequency}`);
+  if (user.dietary.pattern) habitsChips.push(`Dietary: ${user.dietary.pattern}`);
+  if (user.dietary.allergies) habitsChips.push(`Allergies: ${user.dietary.allergies}`);
+
   return (
     <div className="w-full pb-20 lg:pb-0">
       {/* Profile Header */}
@@ -239,16 +257,15 @@ export default async function ProfilePage() {
               )}
             </div>
 
-            {user.languages && Array.isArray(user.languages) && user.languages.length > 0 ? (
-              <div className="border-2 border-foreground rounded-md p-4 space-y-3">
-                {user.languages.map((lang: UserLanguage, idx: number) => (
-                  <div
-                    key={`${lang.language}-${idx}`}
-                    className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0"
+            {languageChips.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {languageChips.map((chip) => (
+                  <span
+                    key={chip.key}
+                    className="text-sm rounded-md border-2 border-foreground bg-surface px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)] capitalize"
                   >
-                    <span className="text-sm">{lang.language}</span>
-                    <span className="text-sm text-muted capitalize">{lang.proficiency}</span>
-                  </div>
+                    {chip.label}
+                  </span>
                 ))}
               </div>
             ) : isOwnProfile ? (
@@ -274,32 +291,16 @@ export default async function ProfilePage() {
               )}
             </div>
 
-            {user.socialStyle && (user.socialStyle.personality || user.socialStyle.groupSize || user.socialStyle.pace.length > 0 || user.socialStyle.planning) ? (
-              <div className="border-2 border-foreground rounded-md p-4 space-y-3">
-                {user.socialStyle.groupSize && (
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                    <span className="text-sm text-muted">Group size</span>
-                    <span className="text-sm capitalize">{user.socialStyle.groupSize}</span>
-                  </div>
-                )}
-                {user.socialStyle.planning && (
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                    <span className="text-sm text-muted">Planning style</span>
-                    <span className="text-sm capitalize">{user.socialStyle.planning}</span>
-                  </div>
-                )}
-                {user.socialStyle.pace.length > 0 && (
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                    <span className="text-sm text-muted">Activity vibe</span>
-                    <span className="text-sm capitalize">{user.socialStyle.pace.join(", ")}</span>
-                  </div>
-                )}
-                {user.socialStyle.personality && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted">Personality</span>
-                    <span className="text-sm capitalize">{user.socialStyle.personality}</span>
-                  </div>
-                )}
+            {socialStyleChips.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {socialStyleChips.map((chip) => (
+                  <span
+                    key={chip}
+                    className="text-sm rounded-md border-2 border-foreground bg-surface px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)] capitalize"
+                  >
+                    {chip}
+                  </span>
+                ))}
               </div>
             ) : isOwnProfile ? (
               <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
@@ -356,42 +357,16 @@ export default async function ProfilePage() {
                 </Link>
               </div>
 
-              {user.habits.smoking.status ||
-              user.habits.vaping.status ||
-              user.habits.alcohol.frequency ||
-              user.dietary.pattern ||
-              user.dietary.allergies ? (
-                <div className="border-2 border-foreground rounded-md p-4 space-y-3">
-                  {user.habits.smoking.status && (
-                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                      <span className="text-sm text-muted">Smoking</span>
-                      <span className="text-sm">{user.habits.smoking.status}</span>
-                    </div>
-                  )}
-                  {user.habits.vaping.status && (
-                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                      <span className="text-sm text-muted">Vaping</span>
-                      <span className="text-sm">{user.habits.vaping.status}</span>
-                    </div>
-                  )}
-                  {user.habits.alcohol.frequency && (
-                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                      <span className="text-sm text-muted">Alcohol</span>
-                      <span className="text-sm">{user.habits.alcohol.frequency}</span>
-                    </div>
-                  )}
-                  {user.dietary.pattern && (
-                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
-                      <span className="text-sm text-muted">Dietary pattern</span>
-                      <span className="text-sm">{user.dietary.pattern}</span>
-                    </div>
-                  )}
-                  {user.dietary.allergies && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted">Allergies</span>
-                      <span className="text-sm">{user.dietary.allergies}</span>
-                    </div>
-                  )}
+              {habitsChips.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {habitsChips.map((chip) => (
+                    <span
+                      key={chip}
+                      className="text-sm rounded-md border-2 border-foreground bg-surface px-3 py-1 shadow-[2px_2px_0_0_var(--foreground)]"
+                    >
+                      {chip}
+                    </span>
+                  ))}
                 </div>
               ) : (
                 <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
