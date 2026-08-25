@@ -176,6 +176,39 @@ export async function updateMaxDistance(formData: FormData) {
   redirect("/profile");
 }
 
+const TRUSTED_CONTACT_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function updateTrustedContact(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const relationship = String(formData.get("relationship") ?? "").trim();
+
+  if (!name) throw new Error("Enter your trusted contact's name.");
+  if (!TRUSTED_CONTACT_EMAIL_RE.test(email)) throw new Error("Enter a valid email address for your trusted contact.");
+
+  const userRef = db.doc(`users/${user.id}`);
+  await userRef.update({
+    trustedContact: { name, email, relationship: relationship || null },
+  });
+
+  revalidatePath("/settings");
+  redirect("/settings");
+}
+
+export async function removeTrustedContact() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const userRef = db.doc(`users/${user.id}`);
+  await userRef.update({ trustedContact: null });
+
+  revalidatePath("/settings");
+  redirect("/settings");
+}
+
 export async function updateGoals(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");

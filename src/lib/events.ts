@@ -7,6 +7,7 @@ import { getUsersByIds } from "@/lib/users-server";
 import { sendEmail } from "@/lib/email";
 import { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy } from "@/lib/event-policies";
 import { stopSafetyMode } from "@/lib/safety";
+import { appendAuditLog } from "@/lib/audit-log";
 
 export { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy };
 
@@ -214,6 +215,29 @@ export async function getAttendeeStatus(
   const snap = await db.doc(`events/${eventId}/attendees/${userId}`).get();
   if (!snap.exists) return null;
   return (snap.data()!.status ?? "joined") as AttendanceStatus;
+}
+
+// Deliberately NOT part of AttendeeDTO/getEventAttendees, which is rendered
+// to every attendee for the whole event — a per-attendee notification
+// preference has no business appearing in that shared list, so this reads
+// and writes a single attendee doc directly, scoped to the requesting user.
+export type NotifyTrustedContactPrefs = { onCheckIn: boolean; onMissedCheckOut: boolean };
+
+export async function getMyNotifyPreferences(eventId: string, userId: string): Promise<NotifyTrustedContactPrefs> {
+  const snap = await db.doc(`events/${eventId}/attendees/${userId}`).get();
+  const prefs = snap.data()?.notifyTrustedContact;
+  return { onCheckIn: prefs?.onCheckIn === true, onMissedCheckOut: prefs?.onMissedCheckOut === true };
+}
+
+export async function updateMyNotifyPreferences(
+  eventId: string,
+  userId: string,
+  prefs: NotifyTrustedContactPrefs,
+): Promise<void> {
+  const attendeeRef = db.doc(`events/${eventId}/attendees/${userId}`);
+  const snap = await attendeeRef.get();
+  if (!snap.exists || snap.data()!.status !== "joined") throw new Error("Join this event first.");
+  await attendeeRef.update({ notifyTrustedContact: prefs });
 }
 
 export async function getEventRatings(eventId: string): Promise<RatingDTO[]> {
@@ -605,7 +629,25 @@ export async function checkIntoEvent(
     checkedOutAt: null,
   });
 
+  if (attendeeSnap.data()?.notifyTrustedContact?.onCheckIn === true) {
+    await notifyTrustedContactOfCheckIn(eventId, userId, event.title as string);
+  }
+
   return { ok: true };
+}
+
+async function notifyTrustedContactOfCheckIn(eventId: string, userId: string, eventTitle: string): Promise<void> {
+  const [userSnap, senderUser] = await Promise.all([db.doc(`users/${userId}`).get(), getUsersByIds([userId])]);
+  const trustedContact = userSnap.data()?.trustedContact;
+  if (!trustedContact?.email) return;
+
+  const displayName = senderUser[userId]?.username ? `@${senderUser[userId].username}` : "Someone you know";
+  await sendEmail({
+    to: trustedContact.email,
+    subject: `${displayName} checked in safely on WhoWe`,
+    html: `<p>${displayName} just checked in at "${eventTitle}" on WhoWe and asked us to let you know.</p>`,
+  });
+  await appendAuditLog({ caseId: null, action: "trusted_contact_notified", actorId: null, subjectId: userId, detail: `checkin:${eventId}` });
 }
 
 export async function checkOutOfEvent(eventId: string, userId: string): Promise<void> {

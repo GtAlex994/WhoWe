@@ -8,6 +8,7 @@ import {
   getAttendeeStatus,
   GENDER_POLICY_LABELS,
   GENDER_POLICY_REQUIRED_GENDER,
+  getMyNotifyPreferences,
 } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users-server";
 import { getCurrentUser } from "@/lib/session";
@@ -22,6 +23,7 @@ import { EventRatingForm } from "@/components/EventRatingForm";
 import { EventCheckIn } from "@/components/EventCheckIn";
 import { SafetyModeControl } from "@/components/SafetyModeControl";
 import { getSafetyModeStatus } from "@/lib/safety";
+import { TrustedContactNotifyToggle } from "@/components/TrustedContactNotifyToggle";
 import { distanceKm, formatDistance } from "@/lib/geo";
 
 function formatWhen(date: Date) {
@@ -65,6 +67,9 @@ export default async function EventDetailPage({
 
   const mySafetyStatus =
     isAttending && currentUser ? await getSafetyModeStatus(event.id, currentUser.id) : null;
+
+  const myNotifyPrefs =
+    isAttending && currentUser?.trustedContact ? await getMyNotifyPreferences(event.id, currentUser.id) : null;
 
   const isGenderEligible =
     event.genderPolicy === "open" ||
@@ -291,6 +296,16 @@ export default async function EventDetailPage({
               eventId={event.id}
               initialActive={mySafetyStatus.active}
               isCheckedIn={myAttendance?.checkInStatus === "checked-in"}
+            />
+          </FadeIn>
+        )}
+
+        {myNotifyPrefs && (
+          <FadeIn delay={0.095}>
+            <TrustedContactNotifyToggle
+              eventId={event.id}
+              initialOnCheckIn={myNotifyPrefs.onCheckIn}
+              initialOnMissedCheckOut={myNotifyPrefs.onMissedCheckOut}
             />
           </FadeIn>
         )}

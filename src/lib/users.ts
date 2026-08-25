@@ -73,6 +73,13 @@ export type UserDTO = {
     allergies: string | null;
   };
 
+  // Optional trusted contact for safety escalation (missed check-out,
+  // "I need help"). Private — never available to hosts, never used for
+  // marketing. Email-only for now: verifying a THIRD PARTY's phone number
+  // needs its own OTP flow separate from the account-holder phone
+  // verification in profile/edit/phone, which is out of scope here.
+  trustedContact: { name: string; email: string; relationship: string | null } | null;
+
   // Private/sensitive fields (never public)
   dateOfBirth: string | null;
   locationLabel: string | null;
@@ -150,6 +157,13 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
       pattern: data.dietary?.pattern ?? null,
       allergies: data.dietary?.allergies ?? null,
     },
+    trustedContact: data.trustedContact
+      ? {
+          name: data.trustedContact.name ?? "",
+          email: data.trustedContact.email ?? "",
+          relationship: data.trustedContact.relationship ?? null,
+        }
+      : null,
     dateOfBirth: data.dateOfBirth ?? null,
     locationLabel: data.locationLabel ?? null,
     locationLat: data.locationLat ?? null,
@@ -335,8 +349,8 @@ export type PublicProfileDTO = {
  * surfaced as an aggregate group-composition summary above a privacy
  * threshold), exact `locationLat`/`locationLng`, `dislikes`, `socialStyle`,
  * `lookingFor`, `matchingPreferences`, `dateOfBirth`, `email`, `habits`
- * (smoking/vaping/alcohol), `dietary`, and every other account/matching-only
- * field. `locationLabel` is passed through
+ * (smoking/vaping/alcohol), `dietary`, `trustedContact`, and every other
+ * account/matching-only field. `locationLabel` is passed through
  * `applyLocationPrecision` so the public view always respects the owner's
  * chosen precision — never the raw stored (most-precise) label.
  */

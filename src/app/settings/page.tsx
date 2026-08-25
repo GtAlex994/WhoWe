@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getUserEventStats } from "@/lib/events";
 import { deleteAccount, signOut, updateNotificationPreference } from "@/app/actions";
+import { updateTrustedContact, removeTrustedContact } from "@/app/profile-actions";
 import { FadeIn } from "@/components/FadeIn";
 import { Button } from "@/components/Button";
 import { LocationPermission } from "@/components/LocationPermission";
@@ -114,6 +115,57 @@ export default async function SettingsPage() {
           <Link href="/profile/blocked" className="text-sm text-primary hover:underline mt-3 inline-block">
             Manage blocked members →
           </Link>
+        </FadeIn>
+
+        <FadeIn delay={0.2}>
+          <h2 className="text-sm font-medium mb-1 uppercase tracking-wide text-muted">Trusted contact</h2>
+          <p className="text-muted text-sm mb-4">
+            Optional, private — never available to hosts, never used for marketing. Only used if you enable
+            per-event check-in/missed-check-out notifications, or if you trigger &quot;I need help&quot; in Safety
+            Mode.
+          </p>
+          {user.trustedContact ? (
+            <div className="border-2 border-foreground rounded-md p-4 mb-4 max-w-sm">
+              <p className="text-sm font-medium">{user.trustedContact.name}</p>
+              <p className="text-sm text-muted">{user.trustedContact.email}</p>
+              {user.trustedContact.relationship && (
+                <p className="text-xs text-muted mt-1">{user.trustedContact.relationship}</p>
+              )}
+              <form action={removeTrustedContact} className="mt-3">
+                <Button type="submit" variant="secondary" className="text-xs px-3 py-1.5">
+                  Remove
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <p className="text-sm text-muted mb-4">No trusted contact set.</p>
+          )}
+          <form action={updateTrustedContact} className="flex flex-col gap-3 max-w-sm">
+            <input
+              name="name"
+              placeholder="Name"
+              defaultValue={user.trustedContact?.name ?? ""}
+              required
+              className="border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none text-sm"
+            />
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              defaultValue={user.trustedContact?.email ?? ""}
+              required
+              className="border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none text-sm"
+            />
+            <input
+              name="relationship"
+              placeholder="Relationship (optional)"
+              defaultValue={user.trustedContact?.relationship ?? ""}
+              className="border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none text-sm"
+            />
+            <Button type="submit" variant="secondary" className="text-sm w-fit">
+              {user.trustedContact ? "Update" : "Save"} trusted contact
+            </Button>
+          </form>
         </FadeIn>
 
         <FadeIn delay={0.22} className="border-t-2 border-border pt-6">

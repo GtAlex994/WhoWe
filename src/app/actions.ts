@@ -26,6 +26,7 @@ import {
   type GenderPolicy,
   getEvent,
   getEventAttendees,
+  updateMyNotifyPreferences,
 } from "@/lib/events";
 import { getUsersByIds } from "@/lib/users-server";
 import { CATEGORIES } from "@/lib/categories";
@@ -360,6 +361,13 @@ export async function requestSafetyHelp(eventId: string) {
   if (!user) redirect("/sign-in");
 
   await triggerSafetyHelp(eventId, user.id);
+}
+
+export async function updateNotifyTrustedContact(eventId: string, onCheckIn: boolean, onMissedCheckOut: boolean) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  await updateMyNotifyPreferences(eventId, user.id, { onCheckIn, onMissedCheckOut });
 }
 
 export async function acceptWildInvite(eventId: string) {
