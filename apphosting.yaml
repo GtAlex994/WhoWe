@@ -45,3 +45,5 @@ env:
     secret: CLICKSEND_API_KEY
     availability:
       - RUNTIME
+  - variable: CRON_SECRET
+    secret: CRON_SECRET
