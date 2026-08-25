@@ -191,3 +191,33 @@ export async function updateGoals(formData: FormData) {
   revalidatePath("/profile");
   redirect("/profile");
 }
+
+export async function updateHabits(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+
+  const smokingStatus = formData.get("smokingStatus");
+  const smokingTolerance = formData.get("smokingTolerance");
+  const vapingStatus = formData.get("vapingStatus");
+  const vapingTolerance = formData.get("vapingTolerance");
+  const alcoholFrequency = formData.get("alcoholFrequency");
+  const alcoholEventPreference = formData.get("alcoholEventPreference");
+  const dietaryPattern = formData.get("dietaryPattern");
+  const allergies = String(formData.get("allergies") ?? "").trim();
+
+  const userRef = db.doc(`users/${user.id}`);
+  await userRef.update({
+    habits: {
+      smoking: { status: smokingStatus || null, tolerance: smokingTolerance || null },
+      vaping: { status: vapingStatus || null, tolerance: vapingTolerance || null },
+      alcohol: { frequency: alcoholFrequency || null, eventPreference: alcoholEventPreference || null },
+    },
+    dietary: {
+      pattern: dietaryPattern || null,
+      allergies: allergies || null,
+    },
+  });
+
+  revalidatePath("/profile");
+  redirect("/profile");
+}

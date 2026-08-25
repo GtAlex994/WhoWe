@@ -57,6 +57,22 @@ export type UserDTO = {
   // Personal situation (future, optional)
   personalSituation: string[];
 
+  // Structured, private-by-default matching fields — never public, used for
+  // matching/event-eligibility only. Separate from `interests`: these carry
+  // real deal-breaker semantics an interest chip doesn't (see events'
+  // smoking/alcohol policy fields).
+  habits: {
+    smoking: { status: string | null; tolerance: string | null };
+    vaping: { status: string | null; tolerance: string | null };
+    alcohol: { frequency: string | null; eventPreference: string | null };
+  };
+  dietary: {
+    pattern: string | null;
+    // Freeform, private, shared with a host only when the user explicitly
+    // authorizes it for a specific event — never used for advertising.
+    allergies: string | null;
+  };
+
   // Private/sensitive fields (never public)
   dateOfBirth: string | null;
   locationLabel: string | null;
@@ -122,6 +138,18 @@ export function toUserDTO(id: string, data: FirebaseFirestore.DocumentData): Use
       eventTypes: [],
     },
     personalSituation: data.personalSituation ?? [],
+    habits: {
+      smoking: { status: data.habits?.smoking?.status ?? null, tolerance: data.habits?.smoking?.tolerance ?? null },
+      vaping: { status: data.habits?.vaping?.status ?? null, tolerance: data.habits?.vaping?.tolerance ?? null },
+      alcohol: {
+        frequency: data.habits?.alcohol?.frequency ?? null,
+        eventPreference: data.habits?.alcohol?.eventPreference ?? null,
+      },
+    },
+    dietary: {
+      pattern: data.dietary?.pattern ?? null,
+      allergies: data.dietary?.allergies ?? null,
+    },
     dateOfBirth: data.dateOfBirth ?? null,
     locationLabel: data.locationLabel ?? null,
     locationLat: data.locationLat ?? null,
@@ -306,8 +334,9 @@ export type PublicProfileDTO = {
  * for matching/eligibility only — never shown on a profile, only ever
  * surfaced as an aggregate group-composition summary above a privacy
  * threshold), exact `locationLat`/`locationLng`, `dislikes`, `socialStyle`,
- * `lookingFor`, `matchingPreferences`, `dateOfBirth`, `email`, and every
- * other account/matching-only field. `locationLabel` is passed through
+ * `lookingFor`, `matchingPreferences`, `dateOfBirth`, `email`, `habits`
+ * (smoking/vaping/alcohol), `dietary`, and every other account/matching-only
+ * field. `locationLabel` is passed through
  * `applyLocationPrecision` so the public view always respects the owner's
  * chosen precision — never the raw stored (most-precise) label.
  */

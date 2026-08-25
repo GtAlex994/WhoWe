@@ -343,6 +343,70 @@ export default async function ProfilePage() {
           </section>
         </FadeIn>
 
+        {/* Habits & Dietary — private, never shown on the public profile */}
+        {isOwnProfile && (
+          <FadeIn delay={0.19}>
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+                  🚭 Habits &amp; dietary <span className="text-xs font-normal text-muted">(private)</span>
+                </h2>
+                <Link href="/profile/edit/habits" className="text-sm text-primary underline hover:text-primary/80">
+                  Edit
+                </Link>
+              </div>
+
+              {user.habits.smoking.status ||
+              user.habits.vaping.status ||
+              user.habits.alcohol.frequency ||
+              user.dietary.pattern ||
+              user.dietary.allergies ? (
+                <div className="border-2 border-foreground rounded-md p-4 space-y-3">
+                  {user.habits.smoking.status && (
+                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
+                      <span className="text-sm text-muted">Smoking</span>
+                      <span className="text-sm">{user.habits.smoking.status}</span>
+                    </div>
+                  )}
+                  {user.habits.vaping.status && (
+                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
+                      <span className="text-sm text-muted">Vaping</span>
+                      <span className="text-sm">{user.habits.vaping.status}</span>
+                    </div>
+                  )}
+                  {user.habits.alcohol.frequency && (
+                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
+                      <span className="text-sm text-muted">Alcohol</span>
+                      <span className="text-sm">{user.habits.alcohol.frequency}</span>
+                    </div>
+                  )}
+                  {user.dietary.pattern && (
+                    <div className="flex items-center justify-between pb-3 border-b-2 border-foreground last:border-0 last:pb-0">
+                      <span className="text-sm text-muted">Dietary pattern</span>
+                      <span className="text-sm">{user.dietary.pattern}</span>
+                    </div>
+                  )}
+                  {user.dietary.allergies && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted">Allergies</span>
+                      <span className="text-sm">{user.dietary.allergies}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="border-2 border-foreground rounded-md p-4 text-center shadow-[2px_2px_0_0_var(--foreground)]">
+                  <p className="text-sm text-muted mb-3">
+                    Optional — helps us match you with compatible events. Never shown to other members.
+                  </p>
+                  <Link href="/profile/edit/habits" className="text-sm text-primary underline">
+                    Add habits &amp; dietary info
+                  </Link>
+                </div>
+              )}
+            </section>
+          </FadeIn>
+        )}
+
         {/* WhoWe Activity */}
         <FadeIn delay={0.2}>
           <section className="mb-8 border-t-2 border-foreground pt-8">
