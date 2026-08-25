@@ -74,7 +74,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
                   />
                 ) : profile.avatar ? (
                   <Image
-                    src={resolveAvatarSrc(profile.avatar, profile.gender)}
+                    src={resolveAvatarSrc(profile.avatar)}
                     alt=""
                     width={96}
                     height={96}

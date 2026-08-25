@@ -22,6 +22,8 @@ import {
   checkIntoEvent as checkIntoEventDb,
   checkOutOfEvent as checkOutOfEventDb,
   markChatRead as markChatReadDb,
+  GENDER_POLICIES,
+  type GenderPolicy,
   getEvent,
   getEventAttendees,
 } from "@/lib/events";
@@ -71,6 +73,12 @@ function parsePriceFields(formData: FormData): { isFree: boolean; price: number 
     throw new Error("Enter a price, or mark this event as free");
   }
   return { isFree: false, price };
+}
+
+function parseGenderPolicy(formData: FormData): GenderPolicy {
+  const raw = String(formData.get("genderPolicy") ?? "open");
+  if (!GENDER_POLICIES.includes(raw as GenderPolicy)) throw new Error("Invalid gender restriction");
+  return raw as GenderPolicy;
 }
 
 function parseCapacityFields(formData: FormData): { minAttendees: number | null; maxAttendees: number | null } {
@@ -148,6 +156,7 @@ export async function createEvent(formData: FormData) {
   }
 
   const { minAttendees, maxAttendees } = parseCapacityFields(formData);
+  const genderPolicy = parseGenderPolicy(formData);
 
   const eventId = await createEventDoc({
     title,
@@ -161,6 +170,7 @@ export async function createEvent(formData: FormData) {
     maxAttendees,
     isFree,
     price,
+    genderPolicy,
     creatorId: user.id,
   });
 
@@ -192,6 +202,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
 
   const { isFree, price } = parsePriceFields(formData);
   const { minAttendees, maxAttendees } = parseCapacityFields(formData);
+  const genderPolicy = parseGenderPolicy(formData);
 
   await updateEventDb(eventId, user.id, {
     title,
@@ -205,6 +216,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
     maxAttendees,
     isFree,
     price,
+    genderPolicy,
   });
 
   revalidatePath(`/events/${eventId}`);

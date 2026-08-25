@@ -41,7 +41,7 @@ export const initialOnboardingState: OnboardingState = {
   displayName: "",
   username: "",
   usernameStatus: "idle",
-  avatar: randomAvataaarsFeatures("male"),
+  avatar: randomAvataaarsFeatures(),
   gender: null,
   bio: "",
   dateOfBirth: "",

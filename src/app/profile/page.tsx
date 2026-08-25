@@ -52,7 +52,7 @@ export default async function ProfilePage() {
                   />
                 ) : user.avatar ? (
                   <Image
-                    src={resolveAvatarSrc(user.avatar, user.gender)}
+                    src={resolveAvatarSrc(user.avatar)}
                     alt=""
                     width={96}
                     height={96}

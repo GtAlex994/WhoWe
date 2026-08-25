@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, Users, DollarSign } from "lucide-react";
-import { getEvent, getEventAttendees, getEventRatings, getAttendeeStatus } from "@/lib/events";
+import {
+  getEvent,
+  getEventAttendees,
+  getEventRatings,
+  getAttendeeStatus,
+  GENDER_POLICY_LABELS,
+  GENDER_POLICY_REQUIRED_GENDER,
+} from "@/lib/events";
 import { getUsersByIds } from "@/lib/users-server";
 import { getCurrentUser } from "@/lib/session";
 import { joinEvent, leaveEvent, rateEvent, cancelEvent, removeAttendee } from "@/app/actions";
@@ -53,6 +60,11 @@ export default async function EventDetailPage({
       ? await getAttendeeStatus(event.id, currentUser.id)
       : null;
   const isPendingInvite = myInviteStatus === "invited";
+
+  const isGenderEligible =
+    event.genderPolicy === "open" ||
+    !currentUser ||
+    currentUser.gender === GENDER_POLICY_REQUIRED_GENDER[event.genderPolicy];
 
   const eventRatingSummary = event.ratingCount > 0 ? { avg: event.ratingAvg!, count: event.ratingCount } : null;
   const hostRatings = await getHostRatings([event.creatorId]);
@@ -112,7 +124,17 @@ export default async function EventDetailPage({
                 {event.price} per person
               </span>
             )}
+            {event.genderPolicy !== "open" && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground border-2 border-foreground rounded-full px-2.5 py-1">
+                {GENDER_POLICY_LABELS[event.genderPolicy]}
+              </span>
+            )}
           </div>
+          {event.genderPolicy !== "open" && (
+            <p className="text-xs text-muted mt-2">
+              Gender is self-declared by each member, not independently verified.
+            </p>
+          )}
         </FadeIn>
 
         {event.cancelledAt && (
@@ -180,6 +202,10 @@ export default async function EventDetailPage({
           ) : event.isWild ? (
             <span className="inline-block text-sm text-muted">
               Spots on Wild meetups are filled by invite only.
+            </span>
+          ) : !isGenderEligible ? (
+            <span className="inline-block text-sm text-muted">
+              This event is {GENDER_POLICY_LABELS[event.genderPolicy].toLowerCase()}.
             </span>
           ) : (
             <form action={joinEvent.bind(null, event.id)}>

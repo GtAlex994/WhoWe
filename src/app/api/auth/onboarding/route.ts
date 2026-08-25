@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       !avatar?.skinColor ||
       !avatar?.clothes ||
       !avatar?.clothesColor ||
-      (gender !== "male" && gender !== "female")
+      (gender !== "male" && gender !== "female" && gender !== "unicorn")
     ) {
       return NextResponse.json({ error: "Missing required profile fields." }, { status: 400 });
     }

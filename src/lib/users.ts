@@ -288,7 +288,6 @@ export type PublicProfileDTO = {
   username: string | null;
   userId: string | null;
   avatar: UserDTO["avatar"];
-  gender: UserDTO["gender"];
   bio: string | null;
   locationLabel: string | null;
   interests: string[];
@@ -303,19 +302,20 @@ export type PublicProfileDTO = {
 /**
  * Projects a UserDTO down to what another member is allowed to see.
  * Deliberately excludes: `name` (private — others see the username only,
- * per the rest of the app's convention), exact `locationLat`/`locationLng`,
- * `dislikes`, `socialStyle`, `lookingFor`, `matchingPreferences`,
- * `dateOfBirth`, `email`, and every other account/matching-only field.
- * `locationLabel` is passed through `applyLocationPrecision` so the public
- * view always respects the owner's chosen precision — never the raw stored
- * (most-precise) label.
+ * per the rest of the app's convention), `gender` (self-declared and used
+ * for matching/eligibility only — never shown on a profile, only ever
+ * surfaced as an aggregate group-composition summary above a privacy
+ * threshold), exact `locationLat`/`locationLng`, `dislikes`, `socialStyle`,
+ * `lookingFor`, `matchingPreferences`, `dateOfBirth`, `email`, and every
+ * other account/matching-only field. `locationLabel` is passed through
+ * `applyLocationPrecision` so the public view always respects the owner's
+ * chosen precision — never the raw stored (most-precise) label.
  */
 export function toPublicProfile(user: UserDTO): PublicProfileDTO {
   return {
     username: user.username,
     userId: user.userId,
     avatar: user.avatar,
-    gender: user.gender,
     bio: user.bio,
     locationLabel: applyLocationPrecision(user.locationLabel, user.locationPrecision),
     interests: user.interests,

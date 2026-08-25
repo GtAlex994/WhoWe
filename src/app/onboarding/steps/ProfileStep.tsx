@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AvatarPersonalizePanel } from "@/components/AvatarPersonalizePanel";
 import { SingleChoice } from "@/components/SingleChoice";
-import { AVATAR_GENDERS, AVATAAARS_TOP, buildAvataaarsUrl, randomAvataaarsFeatures, type AvatarGender } from "@/lib/avatars";
+import { AVATAR_GENDERS, buildAvataaarsUrl, randomAvataaarsFeatures, type AvatarGender } from "@/lib/avatars";
 import type { OnboardingState, OnboardingAction } from "../onboarding-reducer";
 import type { StepErrors } from "../validation";
 
@@ -65,13 +65,12 @@ export function ProfileStep({ state, dispatch, errors }: ProfileStepProps) {
       <div>
         <SingleChoice
           label="Gender"
-          hint="Determines which avatar options you'll see below."
+          hint="Self-declared, not independently verified. Used for event eligibility and privacy-preserving group information — never shown publicly on your profile."
           options={GENDER_LABELS}
           value={state.gender ? (AVATAR_GENDERS.find((g) => g.id === state.gender)?.label ?? null) : null}
           onChange={(label) => {
             const newGender = (AVATAR_GENDERS.find((g) => g.label === label)?.id ?? "male") as AvatarGender;
-            const top = AVATAAARS_TOP[newGender].includes(state.avatar.top) ? state.avatar.top : AVATAAARS_TOP[newGender][0];
-            dispatch({ type: "PATCH", patch: { gender: newGender, avatar: { ...state.avatar, top } } });
+            dispatch({ type: "PATCH", patch: { gender: newGender } });
           }}
           required
         />
@@ -156,40 +155,33 @@ export function ProfileStep({ state, dispatch, errors }: ProfileStepProps) {
         <p className="text-sm font-medium block mb-2">
           Avatar <span className="font-normal text-muted">(optional)</span>
         </p>
-        {state.gender ? (
-          <>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden bg-surface border-2 border-foreground shrink-0">
-                <Image src={buildAvataaarsUrl(state.avatar)} alt="Avatar preview" width={64} height={64} unoptimized />
-              </div>
-              <div className="flex flex-col gap-1 items-start">
-                <button
-                  type="button"
-                  onClick={() => dispatch({ type: "PATCH", patch: { avatar: randomAvataaarsFeatures(state.gender as AvatarGender) } })}
-                  className="text-sm text-muted hover:text-foreground underline"
-                >
-                  Shuffle look
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPersonalizeOpen(true)}
-                  className="text-sm text-primary hover:text-primary/80 underline"
-                >
-                  Personalize avatar
-                </button>
-              </div>
-            </div>
-            <AvatarPersonalizePanel
-              open={personalizeOpen}
-              onClose={() => setPersonalizeOpen(false)}
-              gender={state.gender}
-              value={state.avatar}
-              onChange={(avatar) => dispatch({ type: "PATCH", patch: { avatar } })}
-            />
-          </>
-        ) : (
-          <p className="text-sm text-muted">Select your gender above to see avatar options.</p>
-        )}
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full overflow-hidden bg-surface border-2 border-foreground shrink-0">
+            <Image src={buildAvataaarsUrl(state.avatar)} alt="Avatar preview" width={64} height={64} unoptimized />
+          </div>
+          <div className="flex flex-col gap-1 items-start">
+            <button
+              type="button"
+              onClick={() => dispatch({ type: "PATCH", patch: { avatar: randomAvataaarsFeatures() } })}
+              className="text-sm text-muted hover:text-foreground underline"
+            >
+              Shuffle look
+            </button>
+            <button
+              type="button"
+              onClick={() => setPersonalizeOpen(true)}
+              className="text-sm text-primary hover:text-primary/80 underline"
+            >
+              Personalize avatar
+            </button>
+          </div>
+        </div>
+        <AvatarPersonalizePanel
+          open={personalizeOpen}
+          onClose={() => setPersonalizeOpen(false)}
+          value={state.avatar}
+          onChange={(avatar) => dispatch({ type: "PATCH", patch: { avatar } })}
+        />
       </div>
 
       <div>

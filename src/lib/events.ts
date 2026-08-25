@@ -5,6 +5,9 @@ import { distanceKm, CHECK_IN_RADIUS_KM } from "@/lib/geo";
 import { getBlockedUserIds, getBlockStatus } from "@/lib/moderation";
 import { getUsersByIds } from "@/lib/users-server";
 import { sendEmail } from "@/lib/email";
+import { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy } from "@/lib/event-policies";
+
+export { GENDER_POLICIES, GENDER_POLICY_LABELS, GENDER_POLICY_REQUIRED_GENDER, type GenderPolicy };
 
 export type EventDTO = {
   id: string;
@@ -28,6 +31,7 @@ export type EventDTO = {
   maxAttendees: number | null;
   isFree: boolean;
   price: number | null;
+  genderPolicy: GenderPolicy;
 };
 
 export type CheckInStatus = "checked-in" | "left";
@@ -115,6 +119,7 @@ function toEventDTO(id: string, data: FirebaseFirestore.DocumentData): EventDTO 
     maxAttendees: data.maxAttendees ?? null,
     isFree: data.isFree ?? true,
     price: data.price ?? null,
+    genderPolicy: GENDER_POLICIES.includes(data.genderPolicy) ? data.genderPolicy : "open",
   };
 }
 
@@ -264,6 +269,7 @@ export async function createEvent(data: {
   maxAttendees: number | null;
   isFree: boolean;
   price: number | null;
+  genderPolicy: GenderPolicy;
 }): Promise<string> {
   const eventRef = db.collection("events").doc();
 
@@ -305,6 +311,7 @@ export async function updateEvent(
     maxAttendees: number | null;
     isFree: boolean;
     price: number | null;
+    genderPolicy: GenderPolicy;
   },
 ): Promise<void> {
   const eventRef = db.doc(`events/${eventId}`);
@@ -505,6 +512,17 @@ export async function joinEvent(eventId: string, userId: string) {
     const blockStatus = await getBlockStatus(userId, preCheckData.creatorId as string);
     if (blockStatus !== "none") {
       throw new Error("You can't join this event.");
+    }
+
+    const genderPolicy: GenderPolicy = GENDER_POLICIES.includes(preCheckData.genderPolicy)
+      ? preCheckData.genderPolicy
+      : "open";
+    if (genderPolicy !== "open") {
+      const userSnap = await db.doc(`users/${userId}`).get();
+      const userGender = userSnap.data()?.gender;
+      if (userGender !== GENDER_POLICY_REQUIRED_GENDER[genderPolicy]) {
+        throw new Error(`This event is ${GENDER_POLICY_LABELS[genderPolicy].toLowerCase()}.`);
+      }
     }
   }
 

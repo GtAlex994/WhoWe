@@ -40,7 +40,6 @@ export async function updateAvatar(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const gender = formData.get("gender");
   const seed = formData.get("seed");
   const top = formData.get("top");
   const hairColor = formData.get("hairColor");
@@ -50,14 +49,12 @@ export async function updateAvatar(formData: FormData) {
   const clothes = formData.get("clothes");
   const clothesColor = formData.get("clothesColor");
 
-  if (gender !== "male" && gender !== "female") throw new Error("Select a gender.");
   if (!seed || !top || !hairColor || !skinColor || !clothes || !clothesColor) {
     throw new Error("Missing avatar fields.");
   }
 
   const userRef = db.doc(`users/${user.id}`);
   await userRef.update({
-    gender,
     avatar: {
       style: "avataaars",
       seed: String(seed),

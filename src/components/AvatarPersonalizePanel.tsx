@@ -3,17 +3,16 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import { AvatarBuilder } from "@/components/AvatarBuilder";
-import type { AvatarGender, AvataaarsFeatures } from "@/lib/avatars";
+import type { AvataaarsFeatures } from "@/lib/avatars";
 
 type AvatarPersonalizePanelProps = {
   open: boolean;
   onClose: () => void;
-  gender: AvatarGender;
   value: AvataaarsFeatures;
   onChange: (features: AvataaarsFeatures) => void;
 };
 
-export function AvatarPersonalizePanel({ open, onClose, gender, value, onChange }: AvatarPersonalizePanelProps) {
+export function AvatarPersonalizePanel({ open, onClose, value, onChange }: AvatarPersonalizePanelProps) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -47,7 +46,7 @@ export function AvatarPersonalizePanel({ open, onClose, gender, value, onChange 
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5">
-          <AvatarBuilder gender={gender} value={value} onChange={onChange} />
+          <AvatarBuilder value={value} onChange={onChange} />
         </div>
 
         <div className="px-5 py-4 border-t-2 border-foreground shrink-0">

@@ -15,13 +15,11 @@ import {
   AVATAAARS_CLOTHES_COLORS,
   buildAvataaarsUrl,
   randomAvataaarsFeatures,
-  type AvatarGender,
   type AvataaarsFeatures,
 } from "@/lib/avatars";
 import { SingleChoice } from "@/components/SingleChoice";
 
 type AvatarBuilderProps = {
-  gender: AvatarGender;
   value: AvataaarsFeatures;
   onChange: (features: AvataaarsFeatures) => void;
 };
@@ -83,7 +81,7 @@ function ColorSwatches({ label, colors, value, onChange }: { label: string; colo
   );
 }
 
-export function AvatarBuilder({ gender, value, onChange }: AvatarBuilderProps) {
+export function AvatarBuilder({ value, onChange }: AvatarBuilderProps) {
   const patch = (features: Partial<AvataaarsFeatures>) => onChange({ ...value, ...features });
 
   return (
@@ -94,7 +92,7 @@ export function AvatarBuilder({ gender, value, onChange }: AvatarBuilderProps) {
         </div>
         <button
           type="button"
-          onClick={() => onChange(randomAvataaarsFeatures(gender))}
+          onClick={() => onChange(randomAvataaarsFeatures())}
           className="text-sm text-muted hover:text-foreground underline"
         >
           Shuffle look
@@ -103,8 +101,8 @@ export function AvatarBuilder({ gender, value, onChange }: AvatarBuilderProps) {
 
       <FeatureChoice
         label="Hairstyle"
-        hint="Options are based on the gender you selected above."
-        ids={AVATAAARS_TOP[gender]}
+        hint="Every style is available, regardless of gender."
+        ids={AVATAAARS_TOP}
         labels={AVATAAARS_TOP_LABELS}
         value={value.top}
         onChange={(top) => patch({ top })}

@@ -26,7 +26,7 @@ export function BasicProfileForm({ user }: { user: UserDTO }) {
           <ColorInitialsAvatar initials={user.name.charAt(0).toUpperCase()} color={user.avatar.seed} className="h-20 w-20 text-2xl" />
         ) : user.avatar ? (
           <Image
-            src={resolveAvatarSrc(user.avatar, user.gender)}
+            src={resolveAvatarSrc(user.avatar)}
             alt=""
             width={80}
             height={80}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateEvent } from "@/app/actions";
 import { CATEGORIES } from "@/lib/categories";
+import { GENDER_POLICIES, GENDER_POLICY_LABELS } from "@/lib/event-policies";
 import { Button } from "@/components/Button";
 import { LocationInput } from "@/components/LocationInput";
 import type { EventDTO } from "@/lib/events";
@@ -73,6 +74,24 @@ export function EditEventForm({ event }: { event: EventDTO }) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium block mb-1">Who can join</label>
+        <select
+          name="genderPolicy"
+          defaultValue={event.genderPolicy}
+          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+        >
+          {GENDER_POLICIES.map((p) => (
+            <option key={p} value={p}>
+              {GENDER_POLICY_LABELS[p]}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted mt-1">
+          Gender is self-declared by each member, not independently verified.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

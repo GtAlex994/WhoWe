@@ -6,35 +6,43 @@ export type AvatarStyle = "avataaars" | "adventurer" | "pixel-art" | "color-init
 export const AVATAR_GENDERS = [
   { id: "male", label: "Male" },
   { id: "female", label: "Female" },
+  { id: "unicorn", label: "Unicorn" },
 ] as const;
 
 export type AvatarGender = (typeof AVATAR_GENDERS)[number]["id"];
 
-// DiceBear's avataaars style has no "gender" option, only individual hairstyle
-// ("top") — this curated split is how the Gender step biases which hairstyles
-// are offered.
-export const AVATAAARS_TOP: Record<AvatarGender, string[]> = {
-  male: ["shortFlat", "shortRound", "shortWaved", "shortCurly", "sides", "theCaesar", "theCaesarAndSidePart", "shaggy", "shaggyMullet", "shavedSides"],
-  female: [
-    "bigHair",
-    "bob",
-    "bun",
-    "curly",
-    "curvy",
-    "dreads",
-    "dreads01",
-    "dreads02",
-    "frida",
-    "frizzle",
-    "fro",
-    "froBand",
-    "longButNotTooLong",
-    "miaWallace",
-    "straight01",
-    "straight02",
-    "straightAndStrand",
-  ],
-};
+// Every hairstyle is available regardless of the identity gender selected —
+// avatar customization is deliberately independent of gender, so this is a
+// flat list, not split/gated by gender the way it used to be.
+export const AVATAAARS_TOP: string[] = [
+  "shortFlat",
+  "shortRound",
+  "shortWaved",
+  "shortCurly",
+  "sides",
+  "theCaesar",
+  "theCaesarAndSidePart",
+  "shaggy",
+  "shaggyMullet",
+  "shavedSides",
+  "bigHair",
+  "bob",
+  "bun",
+  "curly",
+  "curvy",
+  "dreads",
+  "dreads01",
+  "dreads02",
+  "frida",
+  "frizzle",
+  "fro",
+  "froBand",
+  "longButNotTooLong",
+  "miaWallace",
+  "straight01",
+  "straight02",
+  "straightAndStrand",
+];
 
 export const AVATAAARS_TOP_LABELS: Record<string, string> = {
   shortFlat: "Short & flat",
@@ -146,10 +154,10 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function randomAvataaarsFeatures(gender: AvatarGender, seed: string = Math.random().toString(36).substring(7)): AvataaarsFeatures {
+export function randomAvataaarsFeatures(seed: string = Math.random().toString(36).substring(7)): AvataaarsFeatures {
   return {
     seed,
-    top: pick(AVATAAARS_TOP[gender]),
+    top: pick(AVATAAARS_TOP),
     hairColor: pick(AVATAAARS_HAIR_COLORS),
     skinColor: pick(AVATAAARS_SKIN_TONES),
     facialHair: Math.random() < 0.35 ? pick(AVATAAARS_FACIAL_HAIR) : "none",
@@ -190,11 +198,11 @@ export function buildAvataaarsUrl(features: AvataaarsFeatures): string {
 }
 
 /** Renders a legacy (pre-feature-picker) avatar — style is always "avataaars" for new accounts. */
-export function getAvatarUrl(seed: string, style: Exclude<AvatarStyle, "color-initials"> = "avataaars", gender?: AvatarGender): string {
+export function getAvatarUrl(seed: string, style: Exclude<AvatarStyle, "color-initials"> = "avataaars"): string {
   const params = new URLSearchParams({ seed, scale: "80" });
-  if (style === "avataaars" && gender) {
-    params.set("top", AVATAAARS_TOP[gender].join(","));
-    params.set("facialHairProbability", gender === "male" ? "35" : "0");
+  if (style === "avataaars") {
+    params.set("top", AVATAAARS_TOP.join(","));
+    params.set("facialHairProbability", "20");
   }
   return `https://api.dicebear.com/9.x/${style}/svg?${params.toString()}`;
 }
@@ -212,7 +220,7 @@ type StoredAvatar = {
 };
 
 /** Resolves a stored avatar (new feature-picker shape, or legacy random-seed shape) to an image URL. */
-export function resolveAvatarSrc(avatar: StoredAvatar, gender?: AvatarGender | null): string {
+export function resolveAvatarSrc(avatar: StoredAvatar): string {
   if (avatar.top && avatar.hairColor && avatar.skinColor && avatar.clothes && avatar.clothesColor) {
     return buildAvataaarsUrl({
       seed: avatar.seed,
@@ -225,5 +233,5 @@ export function resolveAvatarSrc(avatar: StoredAvatar, gender?: AvatarGender | n
       clothesColor: avatar.clothesColor,
     });
   }
-  return getAvatarUrl(avatar.seed, avatar.style as Exclude<AvatarStyle, "color-initials">, gender ?? undefined);
+  return getAvatarUrl(avatar.seed, avatar.style as Exclude<AvatarStyle, "color-initials">);
 }

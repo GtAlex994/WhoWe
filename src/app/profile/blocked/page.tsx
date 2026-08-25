@@ -42,7 +42,7 @@ export default async function BlockedUsersPage() {
                     />
                   ) : blockedUser.avatar ? (
                     <Image
-                      src={resolveAvatarSrc(blockedUser.avatar, blockedUser.gender)}
+                      src={resolveAvatarSrc(blockedUser.avatar)}
                       alt=""
                       width={48}
                       height={48}
