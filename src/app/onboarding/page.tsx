@@ -1,9 +1,6 @@
 "use client";
 
 import { useReducer, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/Button";
-import { FadeIn } from "@/components/FadeIn";
 import { OnboardingShell } from "@/components/OnboardingShell";
 import { calculateProfileCompletion } from "@/lib/users";
 import { STEPS } from "./constants";
@@ -23,7 +20,6 @@ export default function OnboardingPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [completedProfile, setCompletedProfile] = useState<{ percent: number } | null>(null);
 
   const step = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
@@ -70,7 +66,9 @@ export default function OnboardingPage() {
         setIsSubmitting(false);
         return;
       }
-      setCompletedProfile({ percent: progressPercent });
+      // Hard navigation, not router.push: guarantees the fresh session cookie
+      // (onboarding clears the needs-onboarding flag) is picked up on the home screen.
+      window.location.href = "/";
     } catch {
       setSubmitError("Something went wrong. Please try again.");
       setIsSubmitting(false);
@@ -91,31 +89,6 @@ export default function OnboardingPage() {
     } else {
       setStepIndex(stepIndex + 1);
     }
-  }
-
-  if (completedProfile) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <FadeIn>
-          <div className="w-full max-w-md text-center space-y-6">
-            <h1 className="text-4xl font-semibold tracking-tight">You&apos;re all set!</h1>
-            <p className="text-muted">Your profile is {completedProfile.percent}% complete.</p>
-            <div className="flex flex-col gap-3">
-              <Link href="/">
-                <Button variant="primary" className="w-full">
-                  Find my first event
-                </Button>
-              </Link>
-              <Link href="/profile">
-                <Button variant="secondary" className="w-full">
-                  View my profile
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </FadeIn>
-      </div>
-    );
   }
 
   return (
