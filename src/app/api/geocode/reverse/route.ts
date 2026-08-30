@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await checkRateLimit(`geocode-reverse:${getClientIp(request)}`, 20, 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ label: null }, { status: 429 });
+  }
+
   const lat = request.nextUrl.searchParams.get("lat");
   const lon = request.nextUrl.searchParams.get("lon");
   if (!lat || !lon) {

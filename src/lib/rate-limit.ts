@@ -23,7 +23,13 @@ export async function checkRateLimit(key: string, max: number, windowMs: number)
 }
 
 export function getClientIp(request: Request): string {
+  // The platform (Cloud Run / Firebase App Hosting) appends the real client
+  // IP as the last entry; every entry before that can be set by the client
+  // itself, so trusting the first one lets a client spoof its rate-limit key.
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
+  if (forwarded) {
+    const parts = forwarded.split(",").map((p) => p.trim());
+    return parts[parts.length - 1];
+  }
   return request.headers.get("x-real-ip") ?? "unknown";
 }
