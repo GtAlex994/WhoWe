@@ -82,49 +82,47 @@ export function CreateEventForm() {
         <LocationInput />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label className="text-sm font-medium block mb-1">Date & time</label>
+        <input
+          type="datetime-local"
+          name="startsAt"
+          required
+          defaultValue={defaultStartsAt()}
+          className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+        />
+      </div>
+
+      {mode === "standard" ? (
         <div>
-          <label className="text-sm font-medium block mb-1">Date & time</label>
-          <input
-            type="datetime-local"
-            name="startsAt"
+          <label className="text-sm font-medium block mb-1">Category</label>
+          <select
+            name="category"
             required
-            defaultValue={defaultStartsAt()}
+            defaultValue={CATEGORIES[0]}
+            className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div>
+          <label className="text-sm font-medium block mb-1">Number of people</label>
+          <input
+            type="number"
+            name="targetHeadcount"
+            required
+            min={2}
+            max={12}
+            defaultValue={4}
             className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
           />
         </div>
-
-        {mode === "standard" ? (
-          <div>
-            <label className="text-sm font-medium block mb-1">Category</label>
-            <select
-              name="category"
-              required
-              defaultValue={CATEGORIES[0]}
-              className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : (
-          <div>
-            <label className="text-sm font-medium block mb-1">Number of people</label>
-            <input
-              type="number"
-              name="targetHeadcount"
-              required
-              min={2}
-              max={12}
-              defaultValue={4}
-              className="w-full border-2 border-foreground bg-surface rounded-md px-4 py-2.5 outline-none"
-            />
-          </div>
-        )}
-      </div>
+      )}
 
       {mode === "standard" && (
         <div>
